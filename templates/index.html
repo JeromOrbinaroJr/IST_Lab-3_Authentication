@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% set title = "Профиль" %}
+
+{% block content %}
+  <div class="card">
+    <h1 class="h1">Вы вошли в систему</h1>
+    <div class="kv">
+      <div class="kv__row"><div class="kv__k">ID</div><div class="kv__v">{{ user.id }}</div></div>
+      <div class="kv__row"><div class="kv__k">Логин</div><div class="kv__v">{{ user.username }}</div></div>
+      <div class="kv__row"><div class="kv__k">ФИО</div><div class="kv__v">{{ user.full_name }}</div></div>
+      <div class="kv__row"><div class="kv__k">Роль</div><div class="kv__v"><code>{{ user.role }}</code></div></div>
+    </div>
+  </div>
+{% endblock %}
+

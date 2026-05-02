@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ title or "Виртуальный деканат" }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container topbar__inner">
+        <div class="brand">Виртуальный деканат</div>
+        <nav class="nav">
+          {% if session.get("user_id") %}
+            <a href="{{ url_for('views.index') }}">Главная</a>
+            <a href="{{ url_for('auth.change_password') }}">Сменить пароль</a>
+            {% if session.get("role") == "admin" %}
+              <a href="{{ url_for('views.admin_users') }}">Пользователи</a>
+            {% endif %}
+            <form class="inline" method="post" action="{{ url_for('auth.logout') }}">
+              <button class="linklike" type="submit">Выйти</button>
+            </form>
+          {% else %}
+            <a href="{{ url_for('auth.login') }}">Вход</a>
+          {% endif %}
+        </nav>
+      </div>
+    </header>
+
+    <main class="container">
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <div class="flash">
+            {% for message in messages %}
+              <div class="flash__item">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </main>
+  </body>
+</html>
+

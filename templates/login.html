@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% set title = "Вход" %}
+
+{% block content %}
+  <div class="card">
+    <h1 class="h1">Вход</h1>
+    <form method="post" action="{{ url_for('auth.login_post') }}">
+      <label class="label">Логин</label>
+      <input class="input" name="username" autocomplete="username" required />
+
+      <label class="label">Пароль</label>
+      <input class="input" name="password" type="password" autocomplete="current-password" required />
+
+      <button class="btn" type="submit">Войти</button>
+    </form>
+  </div>
+{% endblock %}

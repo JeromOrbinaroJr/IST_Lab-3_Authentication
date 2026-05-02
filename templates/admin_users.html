@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% set title = "Пользователи" %}
+
+{% block content %}
+  <div class="card">
+    <h1 class="h1">Пользователи (admin)</h1>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Логин</th>
+          <th>ФИО</th>
+          <th>Роль</th>
+          <th>Активен</th>
+          <th>Создан</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+          <tr>
+            <td>{{ u.id }}</td>
+            <td><code>{{ u.username }}</code></td>
+            <td>{{ u.full_name }}</td>
+            <td><code>{{ u.role }}</code></td>
+            <td>{{ "да" if u.is_active else "нет" }}</td>
+            <td>{{ u.created_at }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
+
