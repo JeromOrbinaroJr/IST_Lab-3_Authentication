@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% set title = "Записи" %}
+
+{% block content %}
+  <div class="card">
+    <h1 class="h1">Записи</h1>
+
+    {% if records and records|length > 0 %}
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Заголовок</th>
+            <th>Владелец</th>
+            <th>Создана</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in records %}
+            <tr>
+              <td>{{ r.id }}</td>
+              <td><a href="{{ url_for('records.view_record', record_id=r.id) }}">{{ r.title }}</a></td>
+              <td><code>{{ r.owner_username }}</code></td>
+              <td>{{ r.created_at }}</td>
+              <td>
+                <a href="{{ url_for('records.view_record', record_id=r.id) }}">Открыть</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="hint">Записей пока нет.</div>
+    {% endif %}
+  </div>
+{% endblock %}
+

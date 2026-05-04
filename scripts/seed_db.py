@@ -21,6 +21,39 @@ def upsert_user(con, *, username, full_name, role, password, is_active=True):
     )
 
 
+def upsert_acl(con, *, subject_type, subject_value, object_type, action):
+    con.execute(
+        """
+        INSERT INTO acl (subject_type, subject_value, object_type, action)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(subject_type, subject_value, object_type, action) DO NOTHING
+        """,
+        (subject_type, subject_value, object_type, action),
+    )
+
+
+def seed_records(con):
+    # Example protected objects. We'll attach them to existing users by username.
+    users = {
+        row["username"]: int(row["id"])
+        for row in con.execute("SELECT id, username FROM users").fetchall()
+    }
+    for username, title, body in [
+        ("student1", "Заявление студента", "Это запись принадлежит student1."),
+        ("teacher1", "Заметки преподавателя", "Это запись принадлежит teacher1."),
+    ]:
+        owner_id = users.get(username)
+        if owner_id is None:
+            continue
+        con.execute(
+            """
+            INSERT INTO records (owner_user_id, title, body)
+            VALUES (?, ?, ?)
+            """,
+            (owner_id, title, body),
+        )
+
+
 def main():
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     db_path = os.path.join(repo_root, "instance", "app.db")
@@ -32,6 +65,7 @@ def main():
     con = sqlite3.connect(db_path)
     try:
         con.execute("PRAGMA foreign_keys = ON;")
+        con.row_factory = sqlite3.Row
         upsert_user(
             con,
             username="admin",
@@ -60,11 +94,56 @@ def main():
             role="student",
             password="student123",
         )
+
+        # ACL for object_type = "records"
+        # Example from the assignment:
+        # - преподаватель -> edit
+        # - студент -> read own
+        # - деканат -> full
+        upsert_acl(
+            con,
+            subject_type="role",
+            subject_value="teacher",
+            object_type="records",
+            action="edit",
+        )
+        upsert_acl(
+            con,
+            subject_type="role",
+            subject_value="student",
+            object_type="records",
+            action="read_own",
+        )
+        upsert_acl(
+            con,
+            subject_type="role",
+            subject_value="student",
+            object_type="records",
+            action="edit_own",
+        )
+        upsert_acl(
+            con,
+            subject_type="role",
+            subject_value="dean",
+            object_type="records",
+            action="full",
+        )
+
+        # Keep admin powerful for administration/demo.
+        upsert_acl(
+            con,
+            subject_type="role",
+            subject_value="admin",
+            object_type="records",
+            action="full",
+        )
+
+        seed_records(con)
         con.commit()
     finally:
         con.close()
 
-    print("OK: seeded users (admin/dean/teacher/student)")
+    print("OK: seeded users + ACL + sample records (admin/dean/teacher/student)")
 
 
 if __name__ == "__main__":
