@@ -179,10 +179,3 @@ instance/
 - `GET /rbac/admin-panel` — пример `@rbac_required("admin")`
 
 **Реализация:** модуль `app/rbac.py` — функции `has_role`, `get_inherited_roles`, `get_all_permissions` и декораторы `rbac_required`, `permission_required`.
-
----
-
-## 8. Примечания
-
-- `SECRET_KEY` в `app/__init__.py` задан как `dev-secret-key-change-me` — для боевого использования заменить на случайное значение.
-- Таблицы `roles`, `role_parents`, `role_permissions` заполняются автоматически при запуске `seed_db.py`.
