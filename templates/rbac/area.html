@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% set title = "Зона: " + min_display %}
+
+{% block content %}
+  <div class="card">
+    <h1 class="h1">
+      {% if allowed %}✅{% else %}🚫{% endif %}
+      Зона «{{ min_display }}»
+    </h1>
+    <p>{{ description }}</p>
+
+    <div class="kv">
+      <div class="kv__row">
+        <div class="kv__k">Требуется роль</div>
+        <div class="kv__v"><code>{{ min_role }}</code> ({{ min_display }})</div>
+      </div>
+      <div class="kv__row">
+        <div class="kv__k">Ваша роль</div>
+        <div class="kv__v"><code>{{ user_role }}</code> ({{ user_display }})</div>
+      </div>
+      <div class="kv__row">
+        <div class="kv__k">Доступ</div>
+        <div class="kv__v">
+          {% if allowed %}
+            Разрешён — ваша роль включает права «{{ min_display }}» через наследование.
+          {% else %}
+            Запрещён (403) — уровень вашей роли недостаточен.
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h1 class="h1">Другие зоны</h1>
+    <div class="kv">
+      {% for r, d in all_areas %}
+        <div class="kv__row">
+          <div class="kv__k"><code>{{ r }}</code></div>
+          <div class="kv__v">
+            <a href="{{ url_for('rbac.area', min_role=r) }}">{{ d }}</a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock %}

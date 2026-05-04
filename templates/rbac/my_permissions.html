@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% set title = "Мои права" %}
+
+{% block content %}
+  <div class="card">
+    <h1 class="h1">Мои права доступа</h1>
+    <div class="kv">
+      <div class="kv__row">
+        <div class="kv__k">Ваша роль</div>
+        <div class="kv__v"><code>{{ user_role }}</code> ({{ user_display }})</div>
+      </div>
+      <div class="kv__row">
+        <div class="kv__k">Унаследованные роли</div>
+        <div class="kv__v">
+          {% for r in inherited %}
+            <code>{{ r }}</code>{% if not loop.last %}, {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      <div class="kv__row">
+        <div class="kv__k">Итого прав</div>
+        <div class="kv__v">{{ all_perms | length }}</div>
+      </div>
+    </div>
+  </div>
+
+  {% for role_name, perms in breakdown.items() %}
+    <div class="card">
+      <h1 class="h1">
+        <code>{{ role_name }}</code> — {{ role_display.get(role_name, role_name) }}
+        {% if role_name == user_role %}(ваша роль){% else %}(унаследована){% endif %}
+      </h1>
+      {% if perms %}
+        <div class="kv">
+          {% for perm in perms %}
+            <div class="kv__row">
+              <div class="kv__k"><code>{{ perm }}</code></div>
+              <div class="kv__v">
+                {% if role_name == user_role %}собственное{% else %}унаследовано{% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p>Нет собственных прав.</p>
+      {% endif %}
+    </div>
+  {% endfor %}
+{% endblock %}

@@ -4,6 +4,7 @@ from .db import close_db, init_app as init_db_app
 from .views import bp as views_bp
 from .auth import bp as auth_bp
 from .records import bp as records_bp
+from .rbac_routes import bp as rbac_bp
 
 
 def create_app():
@@ -24,5 +25,6 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(views_bp)
     app.register_blueprint(records_bp)
+    app.register_blueprint(rbac_bp)
 
     return app

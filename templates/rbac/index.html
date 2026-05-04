@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% set title = "Ролевое управление доступом" %}
+
+{% block content %}
+  <div class="card">
+    <h1 class="h1">Иерархия ролей</h1>
+    <p>Каждая роль наследует все права ролей, стоящих ниже неё.</p>
+
+    <div class="kv">
+      {% for entry in hierarchy %}
+        <div class="kv__row">
+          <div class="kv__k"><code>{{ entry.name }}</code></div>
+          <div class="kv__v">{{ entry.display }}</div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card">
+    <h1 class="h1">Права с учётом наследования</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>Роль</th>
+          <th>Собственные права</th>
+          <th>Унаследованные роли</th>
+          <th>Итого прав</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in hierarchy %}
+          <tr>
+            <td><code>{{ entry.name }}</code></td>
+            <td>
+              {% for p in entry.own_perms %}
+                <code>{{ p }}</code>{% if not loop.last %}, {% endif %}
+              {% endfor %}
+            </td>
+            <td>
+              {% for r in entry.inherited[:-1] %}
+                <code>{{ r }}</code>{% if not loop.last %}, {% endif %}
+              {% else %}
+                —
+              {% endfor %}
+            </td>
+            <td>{{ entry.all_perms | length }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h1 class="h1">Демонстрация доступа по зонам</h1>
+    <p>Войдите под разными учётными записями и проверьте доступ к каждой зоне.</p>
+    <div class="kv">
+      {% for entry in hierarchy %}
+        <div class="kv__row">
+          <div class="kv__k"><code>{{ entry.name }}</code></div>
+          <div class="kv__v">
+            <a href="{{ url_for('rbac.area', min_role=entry.name) }}">
+              Открыть зону «{{ entry.display }}»
+            </a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="{{ url_for('rbac.my_permissions') }}">Посмотреть мои права →</a>
+    &nbsp;|&nbsp;
+    <a href="{{ url_for('rbac.hierarchy') }}">Иерархия из БД →</a>
+  </div>
+{% endblock %}

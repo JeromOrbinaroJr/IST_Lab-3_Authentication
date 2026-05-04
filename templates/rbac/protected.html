@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% set title = title %}
+
+{% block content %}
+  <div class="card">
+    <h1 class="h1">{{ title }}</h1>
+    <p>
+      Страница защищена декоратором
+      <code>@rbac_required("{{ required_role }}")</code>.
+    </p>
+    <div class="kv">
+      <div class="kv__row">
+        <div class="kv__k">Требуется</div>
+        <div class="kv__v">
+          <code>{{ required_role }}</code>
+          ({{ role_display.get(required_role, required_role) }})
+        </div>
+      </div>
+      <div class="kv__row">
+        <div class="kv__k">Ваша роль</div>
+        <div class="kv__v"><code>{{ session.get("role") }}</code></div>
+      </div>
+      <div class="kv__row">
+        <div class="kv__k">Доступ</div>
+        <div class="kv__v">Разрешён ✅</div>
+      </div>
+    </div>
+    <p><a href="{{ url_for('rbac.index') }}">← Назад к ролям</a></p>
+  </div>
+{% endblock %}
