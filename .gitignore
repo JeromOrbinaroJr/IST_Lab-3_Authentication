@@ -4,4 +4,4 @@ __pycache__/
 instance/app.db
 instance/*.db
 .DS_Store
-
+.idea/

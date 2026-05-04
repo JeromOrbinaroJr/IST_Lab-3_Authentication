@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% set title = "Редактирование записи" %}
+
+{% block content %}
+  <div class="card">
+    <h1 class="h1">Редактирование</h1>
+    <form method="post" action="{{ url_for('records.edit_record_post', record_id=record.id) }}">
+      <label class="label">Заголовок</label>
+      <input class="input" name="title" value="{{ record.title }}" required />
+
+      <label class="label">Текст</label>
+      <textarea class="input" name="body" rows="10" required>{{ record.body }}</textarea>
+
+      <button class="btn" type="submit">Сохранить</button>
+      <a class="btn" href="{{ url_for('records.view_record', record_id=record.id) }}">Отмена</a>
+    </form>
+  </div>
+{% endblock %}
+

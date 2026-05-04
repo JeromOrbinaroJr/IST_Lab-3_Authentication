@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% set title = "Иерархия ролей из БД" %}
+
+{% block content %}
+  <div class="card">
+    <h1 class="h1">Иерархия ролей из базы данных</h1>
+    <p>Таблицы <code>roles</code> и <code>role_parents</code>.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>name</th>
+          <th>display_name</th>
+          <th>level</th>
+          <th>parent</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for role in roles %}
+          <tr>
+            <td><code>{{ role.name }}</code></td>
+            <td>{{ role.display_name }}</td>
+            <td>{{ role.level }}</td>
+            <td>
+              {% if role.parent_role %}
+                <code>{{ role.parent_role }}</code>
+                ({{ role_display.get(role.parent_role, role.parent_role) }})
+              {% else %}
+                —
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h1 class="h1">Цепочка наследования</h1>
+    <p>
+      {% for role in roles %}
+        <code>{{ role.display_name }}</code>
+        {% if not loop.last %} → {% endif %}
+      {% endfor %}
+    </p>
+    <p>Роль с уровнем <em>N</em> автоматически обладает правами всех ролей с уровнями 0…N−1.</p>
+  </div>
+{% endblock %}

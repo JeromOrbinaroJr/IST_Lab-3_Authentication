@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% set title = "Запись" %}
+
+{% block content %}
+  <div class="card">
+    <h1 class="h1">{{ record.title }}</h1>
+    <div class="hint">Владелец: <code>{{ record.owner_username }}</code> · Создана: {{ record.created_at }}</div>
+
+    <div style="margin-top: 12px; white-space: pre-wrap">{{ record.body }}</div>
+
+    <div style="margin-top: 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap">
+      <a class="btn" href="{{ url_for('records.list_records') }}">К списку</a>
+      <a class="btn" href="{{ url_for('records.edit_record', record_id=record.id) }}">Редактировать</a>
+
+      <form method="post" action="{{ url_for('records.delete_record', record_id=record.id) }}"
+            onsubmit="return confirm('Удалить запись?')">
+        <button class="btn" type="submit">Удалить</button>
+      </form>
+    </div>
+
+    <div class="hint">
+      Кнопки «Редактировать» и «Удалить» дополнительно проверяются на сервере через ACL.
+    </div>
+  </div>
+{% endblock %}
+

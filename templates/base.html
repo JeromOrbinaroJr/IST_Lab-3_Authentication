@@ -13,6 +13,8 @@
         <nav class="nav">
           {% if session.get("user_id") %}
             <a href="{{ url_for('views.index') }}">Главная</a>
+            <a href="{{ url_for('records.list_records') }}">Записи</a>
+            <a href="{{ url_for('rbac.index') }}">Роли</a>
             <a href="{{ url_for('auth.change_password') }}">Сменить пароль</a>
             {% if session.get("role") == "admin" %}
               <a href="{{ url_for('views.admin_users') }}">Пользователи</a>
