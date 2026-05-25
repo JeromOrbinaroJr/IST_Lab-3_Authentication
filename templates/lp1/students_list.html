@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% set title = "ЛП1 — студенты" %}
+
+{% block content %}
+  <div class="card">
+    <h1 class="h1">Студенты</h1>
+    {% if session.get("role") in ["admin", "dean"] %}
+      <p><a href="{{ url_for('lp1.students_new') }}">Добавить студента</a></p>
+    {% endif %}
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Билет</th>
+          <th>ФИО</th>
+          <th>Группа</th>
+          <th>Статус</th>
+          <th>Долги</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in students %}
+          <tr>
+            <td>{{ s.id }}</td>
+            <td><code>{{ s.student_card_number }}</code></td>
+            <td>
+              <a href="{{ url_for('lp1.students_detail', student_id=s.id) }}">
+                {{ s.last_name }} {{ s.first_name }} {{ s.middle_name or "" }}
+              </a>
+            </td>
+            <td><code>{{ s.group_name }}</code></td>
+            <td>{{ s.status_name }}</td>
+            <td>{{ s.active_debts }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
+

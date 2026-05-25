@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% set title = "ЛП1 — академическая адаптация" %}
+
+{% block content %}
+  <div class="card">
+    <h1 class="h1">Локальное представление 1</h1>
+    <p class="hint">Управление студентами с системой академической адаптации.</p>
+    <p>
+      <a href="{{ url_for('lp1.students_list') }}">Список студентов</a>
+    </p>
+  </div>
+{% endblock %}
+

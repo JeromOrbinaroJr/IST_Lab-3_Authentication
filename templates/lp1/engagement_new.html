@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% set title = "ЛП1 — оценка вовлеченности" %}
+
+{% block content %}
+  <div class="card">
+    <h1 class="h1">Оценка вовлеченности</h1>
+    <p class="hint">
+      {{ student.last_name }} {{ student.first_name }} {{ student.middle_name or "" }}
+    </p>
+
+    {% if disciplines %}
+      <form method="post" action="{{ url_for('lp1.engagement_new_post', student_id=student.id) }}">
+        <input type="hidden" name="student_id" value="{{ student.id }}" />
+
+        <label class="label">Дисциплина</label>
+        <select class="input" name="discipline_id" required>
+          {% for d in disciplines %}
+            <option value="{{ d.id }}">{{ d.name }}</option>
+          {% endfor %}
+        </select>
+
+        <label class="label">Оценка (1–10)</label>
+        <input class="input" name="score" type="number" min="1" max="10" required />
+
+        <label class="label">Причина (необязательно)</label>
+        <input class="input" name="reason" />
+
+        <button class="btn" type="submit">Сохранить</button>
+      </form>
+    {% else %}
+      <p class="hint">Для вас не назначено дисциплин.</p>
+    {% endif %}
+  </div>
+{% endblock %}

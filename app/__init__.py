@@ -5,6 +5,8 @@ from .views import bp as views_bp
 from .auth import bp as auth_bp
 from .records import bp as records_bp
 from .rbac_routes import bp as rbac_bp
+from .lp1 import bp as lp1_bp
+from .lp1_legacy import bp as lp1_legacy_bp
 
 
 def create_app():
@@ -26,5 +28,7 @@ def create_app():
     app.register_blueprint(views_bp)
     app.register_blueprint(records_bp)
     app.register_blueprint(rbac_bp)
+    app.register_blueprint(lp1_bp)
+    app.register_blueprint(lp1_legacy_bp)
 
     return app

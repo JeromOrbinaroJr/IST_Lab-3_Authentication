@@ -179,3 +179,35 @@ instance/
 - `GET /rbac/admin-panel` — пример `@rbac_required("admin")`
 
 **Реализация:** модуль `app/rbac.py` — функции `has_role`, `get_inherited_roles`, `get_all_permissions` и декораторы `rbac_required`, `permission_required`.
+
+---
+
+## 8. Раздел «Студенты» — управление студентами и академическая адаптация (Осит Герман)
+
+Реализовано локальное представление 1 из файла проекта БД: **«Управление студентами с системой академической адаптации»**.
+
+### 8.1 Сущности ЛП1 (SQLite)
+
+Сущности из таблиц 1.1/1.2/1.3 реализованы в `app/schema.sql`:
+- `students` — студент (номер билета, ФИО, текущая группа, текущий статус)
+- `academic_statuses` — справочник академических статусов
+- `student_groups` — учебные группы (лимит мест + текущее число студентов)
+- `teachers` / `disciplines` — преподаватели и дисциплины (`disciplines.is_advanced`)
+- `engagement_scores` — оценка вовлеченности (1–10) + причина + дата
+- `transfer_history` — история переводов (старая/новая группа, основание, сотрудник деканата)
+- `academic_debts` — академические задолженности (активная/погашенная)
+
+### 8.2 Страницы раздела
+
+- `GET /students/` — список студентов (`admin/dean/teacher`)
+- `GET/POST /students/new` — добавление студента (`admin/dean`)
+- `GET /students/<id>` — карточка студента (`admin/dean/teacher`)
+- `GET/POST /students/<id>/transfer` — перевод между группами (`admin/dean`)
+- `GET/POST /students/<id>/debts/new` — добавить задолженность (`admin/dean`)
+- `POST /students/debts/<id>/close` — погасить задолженность (`admin/dean`)
+- `GET/POST /students/<id>/engagement/new` — добавить оценку вовлеченности (`teacher`, только по своим дисциплинам)
+
+### 8.3 Мини‑правила (для демонстрации)
+
+- контроль лимита мест: нельзя добавить/перевести студента в группу, где `current_students >= max_students`
+- запрет перевода при активных долгах: если есть `academic_debts.status = 'активная'`, перевод блокируется

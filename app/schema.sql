@@ -90,3 +90,88 @@ INSERT OR IGNORE INTO role_permissions (role, permission) VALUES
   ('admin',    'manage_users'),
   ('admin',    'manage_roles'),
   ('admin',    'full_access');
+
+-- ── ЛП1 (Осит Герман): Управление студентами и академическая адаптация ───────
+CREATE TABLE IF NOT EXISTS academic_statuses (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  name        TEXT NOT NULL UNIQUE,
+  description TEXT
+);
+
+CREATE TABLE IF NOT EXISTS student_groups (
+  id               INTEGER PRIMARY KEY AUTOINCREMENT,
+  name             TEXT    NOT NULL UNIQUE,
+  max_students     INTEGER NOT NULL CHECK (max_students > 0),
+  current_students INTEGER NOT NULL DEFAULT 0 CHECK (current_students >= 0)
+);
+
+CREATE TABLE IF NOT EXISTS teachers (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id     INTEGER UNIQUE,
+  last_name   TEXT NOT NULL,
+  first_name  TEXT NOT NULL,
+  middle_name TEXT,
+  degree      TEXT,
+  position    TEXT NOT NULL,
+  email       TEXT NOT NULL UNIQUE,
+  created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS disciplines (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  name        TEXT    NOT NULL UNIQUE,
+  is_advanced INTEGER NOT NULL DEFAULT 0 CHECK (is_advanced IN (0, 1)),
+  teacher_id  INTEGER NOT NULL REFERENCES teachers(id) ON DELETE RESTRICT
+);
+
+CREATE TABLE IF NOT EXISTS students (
+  id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+  student_card_number TEXT    NOT NULL UNIQUE,
+  last_name           TEXT    NOT NULL,
+  first_name          TEXT    NOT NULL,
+  middle_name         TEXT,
+  group_id            INTEGER NOT NULL REFERENCES student_groups(id) ON DELETE RESTRICT,
+  status_id           INTEGER NOT NULL REFERENCES academic_statuses(id) ON DELETE RESTRICT,
+  created_at          TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_students_group_id ON students(group_id);
+CREATE INDEX IF NOT EXISTS idx_students_status_id ON students(status_id);
+
+CREATE TABLE IF NOT EXISTS engagement_scores (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  student_id    INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  discipline_id INTEGER NOT NULL REFERENCES disciplines(id) ON DELETE CASCADE,
+  teacher_id    INTEGER NOT NULL REFERENCES teachers(id) ON DELETE RESTRICT,
+  score         INTEGER NOT NULL CHECK (score BETWEEN 1 AND 10),
+  reason        TEXT,
+  created_at    TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_engagement_student_id ON engagement_scores(student_id);
+CREATE INDEX IF NOT EXISTS idx_engagement_discipline_id ON engagement_scores(discipline_id);
+
+CREATE TABLE IF NOT EXISTS transfer_history (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  student_id    INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  old_group_id  INTEGER NOT NULL REFERENCES student_groups(id) ON DELETE RESTRICT,
+  new_group_id  INTEGER NOT NULL REFERENCES student_groups(id) ON DELETE RESTRICT,
+  transfer_date TEXT    NOT NULL DEFAULT (datetime('now')),
+  basis         TEXT    NOT NULL,
+  dean_user_id  INTEGER REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_transfer_student_id ON transfer_history(student_id);
+
+CREATE TABLE IF NOT EXISTS academic_debts (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  student_id    INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  discipline_id INTEGER NOT NULL REFERENCES disciplines(id) ON DELETE RESTRICT,
+  debt_type     TEXT    NOT NULL,
+  description   TEXT,
+  occurred_on   TEXT    NOT NULL,
+  status        TEXT    NOT NULL DEFAULT 'активная' CHECK (status IN ('активная', 'погашенная'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_debts_student_id ON academic_debts(student_id);

@@ -55,6 +55,86 @@ def seed_records(con):
         )
 
 
+def upsert_status(con, *, name, description=None):
+    con.execute(
+        """
+        INSERT INTO academic_statuses (name, description)
+        VALUES (?, ?)
+        ON CONFLICT(name) DO UPDATE SET description = excluded.description
+        """,
+        (name, description),
+    )
+
+
+def upsert_group(con, *, name, max_students):
+    con.execute(
+        """
+        INSERT INTO student_groups (name, max_students)
+        VALUES (?, ?)
+        ON CONFLICT(name) DO UPDATE SET max_students = excluded.max_students
+        """,
+        (name, max_students),
+    )
+
+
+def upsert_teacher(con, *, user_id, last_name, first_name, middle_name, degree, position, email):
+    con.execute(
+        """
+        INSERT INTO teachers (user_id, last_name, first_name, middle_name, degree, position, email)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(email) DO UPDATE SET
+          user_id = excluded.user_id,
+          last_name = excluded.last_name,
+          first_name = excluded.first_name,
+          middle_name = excluded.middle_name,
+          degree = excluded.degree,
+          position = excluded.position
+        """,
+        (user_id, last_name, first_name, middle_name, degree, position, email),
+    )
+
+
+def upsert_discipline(con, *, name, is_advanced, teacher_id):
+    con.execute(
+        """
+        INSERT INTO disciplines (name, is_advanced, teacher_id)
+        VALUES (?, ?, ?)
+        ON CONFLICT(name) DO UPDATE SET
+          is_advanced = excluded.is_advanced,
+          teacher_id = excluded.teacher_id
+        """,
+        (name, 1 if is_advanced else 0, teacher_id),
+    )
+
+
+def upsert_student(con, *, student_card_number, last_name, first_name, middle_name, group_id, status_id):
+    con.execute(
+        """
+        INSERT INTO students (student_card_number, last_name, first_name, middle_name, group_id, status_id)
+        VALUES (?, ?, ?, ?, ?, ?)
+        ON CONFLICT(student_card_number) DO UPDATE SET
+          last_name = excluded.last_name,
+          first_name = excluded.first_name,
+          middle_name = excluded.middle_name,
+          group_id = excluded.group_id,
+          status_id = excluded.status_id
+        """,
+        (student_card_number, last_name, first_name, middle_name, group_id, status_id),
+    )
+
+
+def recompute_group_counts(con):
+    con.execute("UPDATE student_groups SET current_students = 0")
+    con.execute(
+        """
+        UPDATE student_groups
+        SET current_students = (
+          SELECT COUNT(*) FROM students s WHERE s.group_id = student_groups.id
+        )
+        """
+    )
+
+
 def main():
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     db_path = os.path.join(repo_root, "instance", "app.db")
@@ -90,11 +170,65 @@ def main():
         init_role_tables(con)
         seed_role_tables(con)
 
+        # ЛП1: справочники и тестовые данные
+        upsert_status(con, name="активный", description="Студент обучается в штатном режиме")
+        upsert_status(con, name="в академическом отпуске", description="Временное приостановление обучения")
+        upsert_status(con, name="отчислен", description="Обучение прекращено")
+
+        upsert_group(con, name="ПИ-101", max_students=30)
+        upsert_group(con, name="ПИ-101 (углубл.)", max_students=15)
+
+        users = {
+            row["username"]: int(row["id"])
+            for row in con.execute("SELECT id, username FROM users").fetchall()
+        }
+        teacher_user_id = users.get("teacher1")
+        upsert_teacher(
+            con,
+            user_id=teacher_user_id,
+            last_name="Иванов",
+            first_name="Иван",
+            middle_name="Иванович",
+            degree="к.т.н.",
+            position="доцент",
+            email="teacher1@example.edu",
+        )
+        teacher_id = con.execute(
+            "SELECT id FROM teachers WHERE email = ?",
+            ("teacher1@example.edu",),
+        ).fetchone()["id"]
+
+        upsert_discipline(con, name="Базы данных", is_advanced=False, teacher_id=teacher_id)
+        upsert_discipline(con, name="Алгоритмы (углубл.)", is_advanced=True, teacher_id=teacher_id)
+
+        group_id = con.execute("SELECT id FROM student_groups WHERE name = ?", ("ПИ-101",)).fetchone()["id"]
+        status_id = con.execute("SELECT id FROM academic_statuses WHERE name = ?", ("активный",)).fetchone()["id"]
+
+        upsert_student(
+            con,
+            student_card_number="S-0001",
+            last_name="Петров",
+            first_name="Пётр",
+            middle_name="Петрович",
+            group_id=group_id,
+            status_id=status_id,
+        )
+        upsert_student(
+            con,
+            student_card_number="S-0002",
+            last_name="Сидорова",
+            first_name="Анна",
+            middle_name=None,
+            group_id=group_id,
+            status_id=status_id,
+        )
+        recompute_group_counts(con)
+
         con.commit()
     finally:
         con.close()
 
-    print("OK: seeded users + ACL + records + role hierarchy")
+    print("OK: seeded users + ACL + records + role hierarchy + LP1 demo data")
 
 
 if __name__ == "__main__":

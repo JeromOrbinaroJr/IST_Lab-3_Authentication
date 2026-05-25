@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% set title = "ЛП1 — перевод студента" %}
+
+{% block content %}
+  <div class="card">
+    <h1 class="h1">Перевод студента</h1>
+    <p class="hint">
+      {{ student.last_name }} {{ student.first_name }} {{ student.middle_name or "" }}
+    </p>
+    <form method="post" action="{{ url_for('lp1.students_transfer_post', student_id=student.id) }}">
+      <label class="label">Новая группа</label>
+      <select class="input" name="new_group_id" required>
+        {% for g in groups %}
+          <option value="{{ g.id }}" {% if g.id == student.group_id %}selected{% endif %}>
+            {{ g.name }} ({{ g.current_students }}/{{ g.max_students }})
+          </option>
+        {% endfor %}
+      </select>
+
+      <label class="label">Основание (приказ/заявление)</label>
+      <input class="input" name="basis" required />
+
+      <button class="btn" type="submit">Выполнить перевод</button>
+    </form>
+  </div>
+{% endblock %}
+

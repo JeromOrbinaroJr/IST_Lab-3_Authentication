@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% set title = "ЛП1 — карточка студента" %}
+
+{% block content %}
+  <div class="card">
+    <h1 class="h1">{{ student.last_name }} {{ student.first_name }} {{ student.middle_name or "" }}</h1>
+    <div class="kv">
+      <div class="kv__row"><div class="kv__k">ID</div><div class="kv__v">{{ student.id }}</div></div>
+      <div class="kv__row"><div class="kv__k">Билет</div><div class="kv__v"><code>{{ student.student_card_number }}</code></div></div>
+      <div class="kv__row"><div class="kv__k">Группа</div><div class="kv__v"><code>{{ student.group_name }}</code></div></div>
+      <div class="kv__row"><div class="kv__k">Статус</div><div class="kv__v">{{ student.status_name }}</div></div>
+    </div>
+
+    <p class="hint">
+      {% if session.get("role") in ["admin", "dean"] %}
+        <a href="{{ url_for('lp1.students_transfer', student_id=student.id) }}">Перевести в другую группу</a>
+        · <a href="{{ url_for('lp1.debt_new', student_id=student.id) }}">Добавить задолженность</a>
+      {% endif %}
+      {% if session.get("role") == "teacher" %}
+        · <a href="{{ url_for('lp1.engagement_new', student_id=student.id) }}">Оценка вовлеченности</a>
+      {% endif %}
+    </p>
+  </div>
+
+  <div style="height: 12px"></div>
+
+  <div class="card">
+    <h2 class="h1">Задолженности</h2>
+    {% if debts %}
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Дисциплина</th>
+            <th>Тип</th>
+            <th>Статус</th>
+            <th>Дата</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in debts %}
+            <tr>
+              <td>{{ d.id }}</td>
+              <td>{{ d.discipline_name }}</td>
+              <td>{{ d.debt_type }}</td>
+              <td><code>{{ d.status }}</code></td>
+              <td>{{ d.occurred_on }}</td>
+              <td>
+                {% if session.get("role") in ["admin", "dean"] and d.status == "активная" %}
+                  <form class="inline" method="post" action="{{ url_for('lp1.debt_close', debt_id=d.id) }}">
+                    <button class="linklike" type="submit">Погасить</button>
+                  </form>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="hint">Нет задолженностей.</p>
+    {% endif %}
+  </div>
+
+  <div style="height: 12px"></div>
+
+  <div class="card">
+    <h2 class="h1">История переводов</h2>
+    {% if transfers %}
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Дата</th>
+            <th>Из</th>
+            <th>В</th>
+            <th>Основание</th>
+            <th>Сотрудник</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in transfers %}
+            <tr>
+              <td>{{ t.id }}</td>
+              <td>{{ t.transfer_date }}</td>
+              <td><code>{{ t.old_group }}</code></td>
+              <td><code>{{ t.new_group }}</code></td>
+              <td>{{ t.basis }}</td>
+              <td>{{ t.dean_name or "-" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="hint">Переводов нет.</p>
+    {% endif %}
+  </div>
+
+  <div style="height: 12px"></div>
+
+  <div class="card">
+    <h2 class="h1">Оценки вовлеченности</h2>
+    {% if engagement %}
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Дата</th>
+            <th>Дисциплина</th>
+            <th>Оценка</th>
+            <th>Преподаватель</th>
+            <th>Причина</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in engagement %}
+            <tr>
+              <td>{{ e.id }}</td>
+              <td>{{ e.created_at }}</td>
+              <td>{{ e.discipline_name }}</td>
+              <td><code>{{ e.score }}</code></td>
+              <td>{{ e.teacher_name }}</td>
+              <td>{{ e.reason or "-" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="hint">Оценок пока нет.</p>
+    {% endif %}
+  </div>
+{% endblock %}

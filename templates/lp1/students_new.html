@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% set title = "ЛП1 — добавить студента" %}
+
+{% block content %}
+  <div class="card">
+    <h1 class="h1">Новый студент</h1>
+    <form method="post" action="{{ url_for('lp1.students_new_post') }}">
+      <label class="label">Номер студенческого билета</label>
+      <input class="input" name="student_card_number" required />
+
+      <label class="label">Фамилия</label>
+      <input class="input" name="last_name" required />
+
+      <label class="label">Имя</label>
+      <input class="input" name="first_name" required />
+
+      <label class="label">Отчество (необязательно)</label>
+      <input class="input" name="middle_name" />
+
+      <label class="label">Группа</label>
+      <select class="input" name="group_id" required>
+        {% for g in groups %}
+          <option value="{{ g.id }}">{{ g.name }} ({{ g.current_students }}/{{ g.max_students }})</option>
+        {% endfor %}
+      </select>
+
+      <label class="label">Академический статус</label>
+      <select class="input" name="status_id" required>
+        {% for st in statuses %}
+          <option value="{{ st.id }}">{{ st.name }}</option>
+        {% endfor %}
+      </select>
+
+      <button class="btn" type="submit">Создать</button>
+    </form>
+  </div>
+{% endblock %}
+

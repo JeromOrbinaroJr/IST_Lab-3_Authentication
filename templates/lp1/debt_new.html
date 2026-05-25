@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% set title = "ЛП1 — задолженность" %}
+
+{% block content %}
+  <div class="card">
+    <h1 class="h1">Новая задолженность</h1>
+    <p class="hint">
+      {{ student.last_name }} {{ student.first_name }} {{ student.middle_name or "" }}
+    </p>
+    <form method="post" action="{{ url_for('lp1.debt_new_post', student_id=student.id) }}">
+      <input type="hidden" name="student_id" value="{{ student.id }}" />
+
+      <label class="label">Дисциплина</label>
+      <select class="input" name="discipline_id" required>
+        {% for d in disciplines %}
+          <option value="{{ d.id }}">{{ d.name }}</option>
+        {% endfor %}
+      </select>
+
+      <label class="label">Тип задолженности</label>
+      <input class="input" name="debt_type" placeholder="например: зачёт / экзамен / лабораторная" required />
+
+      <label class="label">Описание (необязательно)</label>
+      <input class="input" name="description" />
+
+      <label class="label">Дата возникновения</label>
+      <input class="input" name="occurred_on" placeholder="YYYY-MM-DD (можно пусто)" />
+
+      <button class="btn" type="submit">Добавить</button>
+    </form>
+  </div>
+{% endblock %}
