@@ -10,6 +10,10 @@ from .lp1 import bp as lp1_bp
 from .lp1_legacy import bp as lp1_legacy_bp
 from .schedule import bp as schedule_bp
 from .notes import bp as notes_bp
+from .achievements import bp as achievements_bp
+from .events       import bp as events_bp
+from .programs     import bp as programs_bp
+from .rating       import bp as rating_bp
 
 
 def create_app():
@@ -35,6 +39,10 @@ def create_app():
     app.register_blueprint(lp1_legacy_bp)
     app.register_blueprint(schedule_bp)
     app.register_blueprint(notes_bp)
+    app.register_blueprint(achievements_bp)
+    app.register_blueprint(events_bp)
+    app.register_blueprint(programs_bp)
+    app.register_blueprint(rating_bp)
 
     @app.context_processor
     def inject_today():

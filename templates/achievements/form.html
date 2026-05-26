@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% set title = "Новое достижение" %}
+
+{% block content %}
+<div class="card">
+  <h1 class="h1">Добавить достижение</h1>
+  <form method="post" action="{{ url_for('achievements.create') }}">
+    <div class="kv">
+      <div class="kv__row">
+        <div class="kv__k"><label for="category_id">Категория</label></div>
+        <div class="kv__v">
+          <select name="category_id" id="category_id">
+            <option value="">— выберите —</option>
+            {% for c in categories %}
+              <option value="{{ c.id }}">{{ c.name }} (базовый балл: {{ c.base_score }})</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="kv__row">
+        <div class="kv__k"><label for="title">Название</label></div>
+        <div class="kv__v">
+          <input type="text" id="title" name="title" placeholder="Например: призёр олимпиады СТАНКИН">
+        </div>
+      </div>
+      <div class="kv__row">
+        <div class="kv__k"><label for="description">Описание</label></div>
+        <div class="kv__v">
+          <textarea id="description" name="description" rows="4"
+                    placeholder="Подробности: уровень, результат, дата..."></textarea>
+        </div>
+      </div>
+    </div>
+    <button type="submit">Отправить на проверку</button>
+    &nbsp;<a href="{{ url_for('achievements.index') }}">Отмена</a>
+  </form>
+</div>
+{% endblock %}

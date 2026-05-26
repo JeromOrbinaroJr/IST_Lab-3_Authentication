@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% set title = "Мероприятия" %}
+
+{% block content %}
+<div class="card">
+  <h1 class="h1">Актуальные мероприятия</h1>
+
+  {% if user_role in ("teacher", "admin") %}
+    <a href="{{ url_for('events.new') }}">+ Добавить мероприятие</a> &nbsp;
+    {% if show_all %}
+      <a href="{{ url_for('events.index') }}">Только активные</a>
+    {% else %}
+      <a href="{{ url_for('events.index', all=1) }}">Показать все</a>
+    {% endif %}
+  {% endif %}
+
+  {% if events %}
+    <table>
+      <thead>
+        <tr>
+          <th>Дата</th>
+          <th>Название</th>
+          <th>Место</th>
+          {% if user_role in ("teacher", "admin") %}
+            <th>Статус</th>
+            <th></th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in events %}
+          <tr>
+            <td>{{ e.event_date }}</td>
+            <td>{{ e.title }}<br>
+              <small>{{ e.description }}</small>
+            </td>
+            <td>{{ e.location or '—' }}</td>
+            {% if user_role in ("teacher", "admin") %}
+              <td>{% if e.is_active %}✅ Активно{% else %}⏸ Скрыто{% endif %}</td>
+              <td>
+                <a href="{{ url_for('events.edit', event_id=e.id) }}">Редактировать</a>
+              </td>
+            {% endif %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>Мероприятий нет.</p>
+  {% endif %}
+</div>
+{% endblock %}

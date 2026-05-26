@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% set title = "Достижение" %}
+
+{% block content %}
+<div class="card">
+  <h1 class="h1">{{ a.title }}</h1>
+  <div class="kv">
+    <div class="kv__row">
+      <div class="kv__k">Студент</div>
+      <div class="kv__v">{{ a.student_name }}</div>
+    </div>
+    <div class="kv__row">
+      <div class="kv__k">Категория</div>
+      <div class="kv__v">{{ a.category_name }}</div>
+    </div>
+    <div class="kv__row">
+      <div class="kv__k">Описание</div>
+      <div class="kv__v">{{ a.description or '—' }}</div>
+    </div>
+    <div class="kv__row">
+      <div class="kv__k">Статус</div>
+      <div class="kv__v">
+        {% if a.status == 'pending' %}⏳ На проверке
+        {% elif a.status == 'approved' %}✅ Одобрено ({{ a.score }} б.)
+        {% else %}❌ Отклонено{% endif %}
+      </div>
+    </div>
+    {% if a.reviewer_comment %}
+      <div class="kv__row">
+        <div class="kv__k">Комментарий</div>
+        <div class="kv__v">{{ a.reviewer_comment }}</div>
+      </div>
+    {% endif %}
+  </div>
+
+  {% if user_role not in ("student", "starosta") and a.status == "pending" %}
+    <hr>
+    <h2 class="h1">Рецензия</h2>
+    <form method="post"
+          action="{{ url_for('achievements.review', achievement_id=a.id) }}">
+      <div class="kv">
+        <div class="kv__row">
+          <div class="kv__k"><label for="score">Баллы</label></div>
+          <div class="kv__v">
+            <input type="number" id="score" name="score" min="0" max="100" value="1">
+          </div>
+        </div>
+        <div class="kv__row">
+          <div class="kv__k"><label for="comment">Комментарий</label></div>
+          <div class="kv__v">
+            <textarea id="comment" name="comment" rows="3"></textarea>
+          </div>
+        </div>
+      </div>
+      <button type="submit" name="action" value="approve">✅ Одобрить</button>
+      &nbsp;
+      <button type="submit" name="action" value="reject">❌ Отклонить</button>
+    </form>
+  {% endif %}
+
+  <p><a href="{{ url_for('achievements.index') }}">← Назад</a></p>
+</div>
+{% endblock %}
