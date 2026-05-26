@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% set title = "Расписание" %}
+
+{% block content %}
+  <div class="card">
+    <h1 class="h1">Расписание
+      {% if group_name %}— группа {{ group_name }}{% endif %}
+    </h1>
+
+    {# Выбор группы для преподавателей и выше #}
+    {% if user_role not in ("student", "starosta") %}
+      <form method="get" action="{{ url_for('schedule.index') }}" style="margin-bottom:1rem">
+        <label for="group_id">Группа:</label>
+        <select name="group_id" id="group_id" onchange="this.form.submit()">
+          <option value="">— выберите группу —</option>
+          {% for g in all_groups %}
+            <option value="{{ g.id }}"
+              {% if g.id == group_id %}selected{% endif %}>
+              {{ g.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </form>
+    {% endif %}
+
+    {% if group_id %}
+
+      {# Выбор конкретной даты #}
+      <form method="get" action="{{ url_for('schedule.index') }}" style="margin-bottom:1rem">
+        {% if user_role not in ("student", "starosta") %}
+          <input type="hidden" name="group_id" value="{{ group_id }}">
+        {% endif %}
+        <label for="date">Дата:</label>
+        <input type="date" id="date" name="date"
+               value="{{ selected_date or today }}">
+        <button type="submit">Показать</button>
+        {% if selected_date %}
+          <a href="{{ url_for('schedule.index', group_id=group_id) }}">
+            Сбросить
+          </a>
+        {% endif %}
+      </form>
+
+      {# Сообщение об ошибке даты #}
+      {% if date_error %}
+        <p>{{ date_error }}</p>
+      {% endif %}
+
+      {# Фильтр по дню недели #}
+      <div style="margin-bottom:1rem">
+        <a href="{{ url_for('schedule.index', group_id=group_id) }}"
+           {% if not selected_day and not selected_date %}style="font-weight:bold"{% endif %}>
+          Все дни
+        </a>
+        {% for day_num, day_name in days.items() %}
+          &nbsp;|&nbsp;
+          <a href="{{ url_for('schedule.index', group_id=group_id, day=day_num) }}"
+             {% if selected_day == day_num and not selected_date %}style="font-weight:bold"{% endif %}>
+            {{ day_name }}
+          </a>
+        {% endfor %}
+      </div>
+
+    {% endif %}
+
+    {# Расписание #}
+    {% if schedule %}
+      {% if selected_date and not date_error %}
+        <p>Расписание на {{ selected_date }}
+          ({{ days.get(selected_day, "") }}):
+        </p>
+      {% endif %}
+      {% for day_num, day_name in days.items() %}
+        {% if day_num in schedule %}
+          {% if not selected_date %}
+            <h2 class="h1" style="margin-top:1.5rem">{{ day_name }}</h2>
+          {% endif %}
+          <table>
+            <thead>
+              <tr>
+                <th>Время</th>
+                <th>Предмет</th>
+                <th>Преподаватель</th>
+                <th>Аудитория</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for lesson in schedule[day_num] %}
+                <tr>
+                  <td>{{ lesson.time_start }} – {{ lesson.time_end }}</td>
+                  <td>{{ lesson.subject }}</td>
+                  <td>{{ lesson.teacher }}</td>
+                  <td>{{ lesson.room }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% endif %}
+      {% endfor %}
+    {% elif not date_error %}
+      {% if group_name %}
+        <p>Расписание для группы {{ group_name }} не найдено.</p>
+      {% else %}
+        <p>Выберите группу для просмотра расписания.</p>
+      {% endif %}
+    {% endif %}
+
+  </div>
+{% endblock %}

@@ -135,6 +135,78 @@ def recompute_group_counts(con):
     )
 
 
+def upsert_schedule_group(con, *, name):
+    con.execute(
+        """
+        INSERT INTO groups (name)
+        VALUES (?)
+        ON CONFLICT(name) DO NOTHING
+        """,
+        (name,),
+    )
+
+
+def insert_lesson(con, *, group_id, day, time_start, time_end, subject, teacher, room=""):
+    con.execute(
+        """
+        INSERT INTO schedule (group_id, day, time_start, time_end, subject, teacher, room)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        """,
+        (group_id, day, time_start, time_end, subject, teacher, room),
+    )
+
+
+def seed_schedule(con):
+    upsert_schedule_group(con, name="ИС-21")
+    upsert_schedule_group(con, name="ИС-22")
+
+    schedule_groups = {
+        row["name"]: int(row["id"])
+        for row in con.execute("SELECT id, name FROM groups").fetchall()
+    }
+
+    lessons = [
+        # group,   day, start,  end,     subject,                  teacher,           room
+        ("ИС-21",  1, "09:00", "10:30", "Математический анализ",  "Иванов И.И.",     "А-101"),
+        ("ИС-21",  1, "10:45", "12:15", "Базы данных",            "Петров П.П.",     "Б-205"),
+        ("ИС-21",  1, "13:00", "14:30", "Информационные системы", "Сидорова О.В.",   "В-312"),
+        ("ИС-21",  2, "09:00", "10:30", "Английский язык",        "Смирнова А.Н.",   "Д-11"),
+        ("ИС-21",  2, "10:45", "12:15", "Физкультура",            "Козлов М.С.",     "Спортзал"),
+        ("ИС-21",  3, "09:00", "10:30", "Базы данных",            "Петров П.П.",     "Б-205"),
+        ("ИС-21",  3, "10:45", "12:15", "Математический анализ",  "Иванов И.И.",     "А-101"),
+        ("ИС-21",  3, "13:00", "14:30", "Физика",                 "Новиков Д.А.",    "А-203"),
+        ("ИС-21",  4, "09:00", "10:30", "Информационные системы", "Сидорова О.В.",   "В-312"),
+        ("ИС-21",  4, "10:45", "12:15", "Английский язык",        "Смирнова А.Н.",   "Д-11"),
+        ("ИС-21",  5, "09:00", "10:30", "Физика",                 "Новиков Д.А.",    "А-203"),
+        ("ИС-21",  5, "10:45", "12:15", "Физкультура",            "Козлов М.С.",     "Спортзал"),
+        ("ИС-22",  1, "09:00", "10:30", "Линейная алгебра",       "Фёдоров С.Н.",    "А-102"),
+        ("ИС-22",  1, "10:45", "12:15", "Программирование",       "Белова Т.И.",     "Компьютерный зал"),
+        ("ИС-22",  2, "09:00", "10:30", "Программирование",       "Белова Т.И.",     "Компьютерный зал"),
+        ("ИС-22",  2, "10:45", "12:15", "Линейная алгебра",       "Фёдоров С.Н.",    "А-102"),
+        ("ИС-22",  3, "09:00", "10:30", "История",                "Орлова М.В.",     "Г-15"),
+        ("ИС-22",  3, "10:45", "12:15", "Физкультура",            "Козлов М.С.",     "Спортзал"),
+        ("ИС-22",  4, "09:00", "10:30", "История",                "Орлова М.В.",     "Г-15"),
+        ("ИС-22",  4, "10:45", "12:15", "Программирование",       "Белова Т.И.",     "Компьютерный зал"),
+        ("ИС-22",  5, "09:00", "10:30", "Линейная алгебра",       "Фёдоров С.Н.",    "А-102"),
+        ("ИС-22",  5, "10:45", "12:15", "Английский язык",        "Смирнова А.Н.",   "Д-11"),
+    ]
+
+    for group_name, day, ts, te, subj, teacher, room in lessons:
+        g_id = schedule_groups.get(group_name)
+        if g_id is None:
+            continue
+        insert_lesson(con, group_id=g_id, day=day, time_start=ts,
+                      time_end=te, subject=subj, teacher=teacher, room=room)
+
+    # Привязать пользователей к группам
+    con.execute(
+        "UPDATE users SET group_id = (SELECT id FROM groups WHERE name = 'ИС-21') WHERE username = 'student1'"
+    )
+    con.execute(
+        "UPDATE users SET group_id = (SELECT id FROM groups WHERE name = 'ИС-21') WHERE username = 'starosta1'"
+    )
+
+
 def main():
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     db_path = os.path.join(repo_root, "instance", "app.db")
@@ -169,6 +241,9 @@ def main():
         # Иерархия ролей
         init_role_tables(con)
         seed_role_tables(con)
+
+        # Расписание
+        seed_schedule(con)
 
         # ЛП1: справочники и тестовые данные
         upsert_status(con, name="активный", description="Студент обучается в штатном режиме")
@@ -228,7 +303,7 @@ def main():
     finally:
         con.close()
 
-    print("OK: seeded users + ACL + records + role hierarchy + LP1 demo data")
+    print("OK: seeded users + ACL + records + role hierarchy + LP1 demo data + schedule")
 
 
 if __name__ == "__main__":

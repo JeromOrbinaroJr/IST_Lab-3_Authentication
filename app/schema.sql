@@ -175,3 +175,29 @@ CREATE TABLE IF NOT EXISTS academic_debts (
 );
 
 CREATE INDEX IF NOT EXISTS idx_debts_student_id ON academic_debts(student_id);
+
+
+-- ── Группы ────────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS groups (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  name       TEXT    NOT NULL UNIQUE  -- например «ИС-21», «ИС-22»
+);
+
+-- ── Привязка студентов/старост к группе ───────────────────────────────────────
+-- Добавляем столбец group_id в users (NULL = не привязан к группе)
+-- SQLite не поддерживает ADD COLUMN с REFERENCES, поэтому без FK-constraint
+ALTER TABLE users ADD COLUMN group_id INTEGER REFERENCES groups(id);
+
+-- ── Расписание ────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS schedule (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  group_id   INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+  day        INTEGER NOT NULL CHECK (day BETWEEN 1 AND 6), -- 1=Пн, 6=Сб
+  time_start TEXT    NOT NULL,  -- «09:00»
+  time_end   TEXT    NOT NULL,  -- «10:30»
+  subject    TEXT    NOT NULL,
+  teacher    TEXT    NOT NULL,
+  room       TEXT    NOT NULL DEFAULT ''
+);
+
+CREATE INDEX IF NOT EXISTS idx_schedule_group ON schedule(group_id, day);
