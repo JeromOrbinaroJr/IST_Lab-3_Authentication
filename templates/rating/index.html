@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% set title = "Рейтинг" %}
+
+{% block content %}
+<div class="card">
+  <h1 class="h1">Рейтинг</h1>
+
+  {% if user_role in ("student", "starosta") %}
+
+    <div class="kv" style="margin-bottom:1.5rem">
+      <div class="kv__row">
+        <div class="kv__k">Мой рейтинг</div>
+        <div class="kv__v"><strong>{{ my_score }} баллов</strong></div>
+      </div>
+    </div>
+
+    {% if my_achievements %}
+      <h2 class="h1">Зачтённые достижения</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Категория</th>
+            <th>Название</th>
+            <th>Баллы</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in my_achievements %}
+            <tr>
+              <td>{{ a.category_name }}</td>
+              <td>{{ a.title }}</td>
+              <td>{{ a.score }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>Нет одобренных достижений.
+        <a href="{{ url_for('achievements.new') }}">Добавить →</a>
+      </p>
+    {% endif %}
+
+    {% if group_rating %}
+      <h2 class="h1" style="margin-top:1.5rem">Рейтинг группы</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Место</th>
+            <th>Студент</th>
+            <th>Баллы</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in group_rating %}
+            <tr {% if row.uid == user_id %}style="font-weight:bold"{% endif %}>
+              <td>{{ loop.index }}</td>
+              <td>{{ row.full_name }}
+                {% if row.uid == user_id %}(вы){% endif %}
+              </td>
+              <td>{{ row.total_score }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+
+  {% else %}
+
+    <h2 class="h1">Общий рейтинг студентов</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Место</th>
+          <th>Студент</th>
+          <th>Группа</th>
+          <th>Курс</th>
+          <th>Баллы</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in all_rating %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ row.full_name }}</td>
+            <td>{{ row.group_name or '—' }}</td>
+            <td>{{ row.course or '—' }}</td>
+            <td>{{ row.total_score }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  {% endif %}
+</div>
+{% endblock %}

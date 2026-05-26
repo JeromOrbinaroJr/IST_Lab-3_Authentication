@@ -17,8 +17,18 @@
               <a href="{{ url_for('lp1.students_list') }}">Студенты</a>
             {% endif %}
             <a href="{{ url_for('records.list_records') }}">Записи</a>
-            <a href="{{ url_for('rbac.index') }}">Роли</a>
-            <a href="{{ url_for('schedule.index', date=today) }}">Расписание</a>
+<!--            <a href="{{ url_for('rbac.index') }}">Роли</a>-->
+            {% if session.get("role") in ("student", "starosta") %}
+              <a href="{{ url_for('schedule.index', date=today) }}">Расписание</a>
+              <a href="{{ url_for('achievements.index') }}">Достижения</a>
+              <a href="{{ url_for('rating.index') }}">Рейтинг</a>
+            {% endif %}
+            <a href="{{ url_for('events.index') }}">Мероприятия</a>
+            <a href="{{ url_for('programs.index') }}">Программы</a>
+            {% if session.get("role") in ("teacher", "admin") %}
+              <a href="{{ url_for('achievements.index') }}">Проверка достижений</a>
+              <a href="{{ url_for('rating.index') }}">Рейтинг</a>
+            {% endif %}
             <a href="{{ url_for('auth.change_password') }}">Сменить пароль</a>
             {% if session.get("role") == "admin" %}
               <a href="{{ url_for('views.admin_users') }}">Пользователи</a>

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% set title = "Достижения" %}
+
+{% block content %}
+<div class="card">
+  <h1 class="h1">
+    {% if user_role in ("student", "starosta") %}Мои достижения
+    {% else %}Проверка достижений{% endif %}
+  </h1>
+
+  {% if user_role in ("student", "starosta") %}
+    <a href="{{ url_for('achievements.new') }}">+ Добавить достижение</a>
+  {% else %}
+    <div style="margin-bottom:1rem">
+      Фильтр:
+      <a href="{{ url_for('achievements.index', status='pending') }}"
+         {% if status_filter == 'pending' %}style="font-weight:bold"{% endif %}>
+        На проверке
+      </a> |
+      <a href="{{ url_for('achievements.index', status='approved') }}"
+         {% if status_filter == 'approved' %}style="font-weight:bold"{% endif %}>
+        Одобренные
+      </a> |
+      <a href="{{ url_for('achievements.index', status='rejected') }}"
+         {% if status_filter == 'rejected' %}style="font-weight:bold"{% endif %}>
+        Отклонённые
+      </a>
+    </div>
+  {% endif %}
+
+  {% if achievements %}
+    <table>
+      <thead>
+        <tr>
+          <th>Дата</th>
+          {% if user_role not in ("student", "starosta") %}
+            <th>Студент</th>
+          {% endif %}
+          <th>Название</th>
+          <th>Категория</th>
+          <th>Статус</th>
+          <th>Баллы</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in achievements %}
+          <tr>
+            <td>{{ a.created_at[:10] }}</td>
+            {% if user_role not in ("student", "starosta") %}
+              <td>{{ a.student_name }}</td>
+            {% endif %}
+            <td>{{ a.title }}</td>
+            <td>{{ a.category_name }}</td>
+            <td>
+              {% if a.status == 'pending' %}⏳ На проверке
+              {% elif a.status == 'approved' %}✅ Одобрено
+              {% else %}❌ Отклонено{% endif %}
+            </td>
+            <td>{{ a.score if a.status == 'approved' else '—' }}</td>
+            <td>
+              <a href="{{ url_for('achievements.detail', achievement_id=a.id) }}">
+                {% if user_role not in ("student", "starosta") %}Рецензировать
+                {% else %}Подробнее{% endif %}
+              </a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>Достижений нет.</p>
+  {% endif %}
+</div>
+{% endblock %}
