@@ -16,6 +16,9 @@
             {% if session.get("role") in ["admin", "dean", "teacher"] %}
               <a href="{{ url_for('lp1.students_list') }}">Студенты</a>
             {% endif %}
+            {% if session.get("role") in ["admin", "dean", "curator", "teacher", "starosta", "student"] %}
+              <a href="{{ url_for('faculty.index') }}">Учебный план</a>
+            {% endif %}
             <a href="{{ url_for('records.list_records') }}">Записи</a>
 <!--            <a href="{{ url_for('rbac.index') }}">Роли</a>-->
             {% if session.get("role") in ("student", "starosta") %}

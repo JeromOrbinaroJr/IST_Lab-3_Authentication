@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% set title = "Локальное представление" %}
+
+{% block content %}
+  <div class="card">
+    <div class="page-head">
+      <div>
+        <h1 class="h1">Локальное представление</h1>
+        <div class="hint">Фрагмент предметной области для раздела «Записи»: преподаватели, кафедры, должности и дисциплины.</div>
+      </div>
+      <a class="btn btn--compact" href="{{ url_for('records.list_records') }}">К записям</a>
+    </div>
+
+    <div class="entity-grid">
+      {% for entity in entities %}
+        <section class="entity">
+          <div class="entity__head">
+            <span>{{ entity.name }}</span>
+            <small>{{ entity.note }}</small>
+          </div>
+          <table class="entity__table">
+            <tbody>
+              {% for field, field_type, key in entity.fields %}
+                <tr>
+                  <td class="entity__field">{{ field }}</td>
+                  <td class="entity__type">{{ field_type }}</td>
+                  <td class="entity__key">{{ key }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </section>
+      {% endfor %}
+    </div>
+
+    <h2 class="section-title">Связи</h2>
+    <div class="relation-list">
+      {% for left, left_cardinality, right_cardinality, right in relations %}
+        <div class="relation">
+          <span>{{ left }}</span>
+          <strong>{{ left_cardinality }} : {{ right_cardinality }}</strong>
+          <span>{{ right }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock %}
