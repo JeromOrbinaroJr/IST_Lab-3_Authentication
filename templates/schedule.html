@@ -116,26 +116,28 @@
                   <div class="kv__k">Текст</div>
                   <div class="kv__v">{{ note.body }}</div>
                 </div>
-                <div class="kv__row">
-                  <div class="kv__k">Действия</div>
-                  <div class="kv__v">
-                    <a href="{{ url_for('notes.edit', note_id=note.id) }}">Редактировать</a>
-                    &nbsp;
-                    <form class="inline" method="post"
-                          action="{{ url_for('notes.delete', note_id=note.id) }}">
-                      <button class="linklike" type="submit"
-                              onclick="return confirm('Удалить заметку?')">Удалить</button>
-                    </form>
+                {% if note.note_type == "group" %}
+                  <div class="kv__row">
+                    <div class="kv__k">Автор</div>
+                    <div class="kv__v">📢 {{ note.author_name }}</div>
                   </div>
-                </div>
+                {% endif %}
+                {% if note.note_type == "personal" or (note.note_type == "group" and user_role == "starosta") %}
+                  <div class="kv__row">
+                    <div class="kv__k">Действия</div>
+                    <div class="kv__v">
+                      <a href="{{ url_for('notes.edit', note_id=note.id) }}">Редактировать</a>
+                      &nbsp;
+                      <form class="inline" method="post"
+                            action="{{ url_for('notes.delete', note_id=note.id) }}">
+                        <button class="linklike" type="submit"
+                                onclick="return confirm('Удалить заметку?')">Удалить</button>
+                      </form>
+                    </div>
+                  </div>
+                {% endif %}
               </div>
             {% endfor %}
-          {% elif selected_date and user_role in ("student", "starosta") and not date_error %}
-            <p style="margin-top:.5rem">
-              <a href="{{ url_for('notes.new', date=selected_date) }}">
-                Добавить заметку на этот день →
-              </a>
-            </p>
           {% endif %}
 
         {% endif %}

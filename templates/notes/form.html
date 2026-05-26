@@ -4,7 +4,9 @@
 {% block content %}
   <div class="card">
     <h1 class="h1">
-      {% if action == "edit" %}Редактировать заметку{% else %}Новая заметка{% endif %}
+      {% if action == "edit" %}Редактировать заметку{% else %}
+        {% if is_group %}Новая заметка для группы{% else %}Новая личная заметка{% endif %}
+      {% endif %}
     </h1>
 
     <form method="post" action="
@@ -14,8 +16,9 @@
         {{ url_for('notes.create') }}
       {% endif %}
     ">
-      <div class="kv">
+      <input type="hidden" name="is_group_note" value="{{ '1' if is_group else '0' }}">
 
+      <div class="kv">
         <div class="kv__row">
           <div class="kv__k"><label for="date">Дата</label></div>
           <div class="kv__v">
@@ -40,6 +43,18 @@
                       placeholder="Текст заметки...">{{ note.body if note else '' }}</textarea>
           </div>
         </div>
+
+        {% if is_group %}
+          <div class="kv__row">
+            <div class="kv__k">Видимость</div>
+            <div class="kv__v">Все студенты вашей группы</div>
+          </div>
+        {% else %}
+          <div class="kv__row">
+            <div class="kv__k">Видимость</div>
+            <div class="kv__v">Только вы</div>
+          </div>
+        {% endif %}
 
       </div>
 

@@ -87,14 +87,34 @@ def index():
         for row in db.execute(query, params).fetchall():
             schedule_by_day.setdefault(row["day"], []).append(dict(row))
 
-    notes_by_date: dict = {}
-    if selected_date and user_role in ("student", "starosta") and not date_error:
-        rows = db.execute(
-            "SELECT * FROM notes WHERE user_id = ? AND date = ? ORDER BY created_at",
-            (user_id, selected_date),
-        ).fetchall()
-        if rows:
-            notes_by_date[selected_date] = [dict(r) for r in rows]
+        # Заметки на выбранную дату
+        notes_by_date: dict = {}
+        if selected_date and user_role in ("student", "starosta") and not date_error:
+            # Личные заметки
+            personal = db.execute(
+                """SELECT *, 'personal' AS note_type, NULL AS author_name
+                   FROM notes WHERE user_id = ? AND date = ? AND is_group_note = 0
+                   ORDER BY created_at""",
+                (user_id, selected_date),
+            ).fetchall()
+
+            # Групповые заметки старосты
+            group_notes = []
+            user_group = db.execute(
+                "SELECT group_id FROM users WHERE id = ?", (user_id,)
+            ).fetchone()
+            if user_group and user_group["group_id"]:
+                group_notes = db.execute(
+                    """SELECT n.*, 'group' AS note_type, u.full_name AS author_name
+                       FROM notes n JOIN users u ON n.user_id = u.id
+                       WHERE n.is_group_note = 1 AND n.group_id = ? AND n.date = ?
+                       ORDER BY n.created_at""",
+                    (user_group["group_id"], selected_date),
+                ).fetchall()
+
+            all_notes = [dict(r) for r in personal] + [dict(r) for r in group_notes]
+            if all_notes:
+                notes_by_date[selected_date] = all_notes
 
     return render_template(
         "schedule.html",

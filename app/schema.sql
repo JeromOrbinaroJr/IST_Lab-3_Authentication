@@ -204,13 +204,16 @@ CREATE INDEX IF NOT EXISTS idx_schedule_group ON schedule(group_id, day);
 
 -- ── Заметки студентов ─────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS notes (
-  id         INTEGER PRIMARY KEY AUTOINCREMENT,
-  user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  date       TEXT    NOT NULL,  -- «2025-03-10»
-  title      TEXT    NOT NULL DEFAULT '',
-  body       TEXT    NOT NULL DEFAULT '',
-  created_at TEXT    NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id       INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  date          TEXT    NOT NULL,
+  title         TEXT    NOT NULL DEFAULT '',
+  body          TEXT    NOT NULL DEFAULT '',
+  is_group_note INTEGER NOT NULL DEFAULT 0 CHECK (is_group_note IN (0, 1)),
+  group_id      INTEGER REFERENCES groups(id) ON DELETE CASCADE,
+  created_at    TEXT    NOT NULL DEFAULT (datetime('now')),
+  updated_at    TEXT
 );
 
-CREATE INDEX IF NOT EXISTS idx_notes_user_date ON notes(user_id, date);
+CREATE INDEX IF NOT EXISTS idx_notes_user_date  ON notes(user_id, date);
+CREATE INDEX IF NOT EXISTS idx_notes_group_date ON notes(group_id, date);
