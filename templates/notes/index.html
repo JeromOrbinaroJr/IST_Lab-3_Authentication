@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% set title = "Мои заметки" %}
+
+{% block content %}
+  <div class="card">
+    <h1 class="h1">Мои заметки</h1>
+
+    <form method="get" action="{{ url_for('notes.index') }}" style="margin-bottom:1rem">
+      <label for="date">Дата:</label>
+      <input type="date" id="date" name="date" value="{{ selected_date or today }}">
+      <button type="submit">Показать</button>
+      {% if selected_date %}
+        <a href="{{ url_for('notes.index') }}">Сбросить</a>
+      {% endif %}
+    </form>
+
+    <a href="{{ url_for('notes.new', date=selected_date or today) }}">+ Новая заметка</a>
+
+    {% if notes %}
+      {% set current_date = namespace(val=None) %}
+      {% for note in notes %}
+        {% if note.date != current_date.val %}
+          {% set current_date.val = note.date %}
+          <h2 class="h1" style="margin-top:1.5rem">{{ note.date }}</h2>
+        {% endif %}
+
+        <div class="kv" style="margin-bottom:1rem">
+          {% if note.title %}
+            <div class="kv__row">
+              <div class="kv__k">Заголовок</div>
+              <div class="kv__v">{{ note.title }}</div>
+            </div>
+          {% endif %}
+          <div class="kv__row">
+            <div class="kv__k">Текст</div>
+            <div class="kv__v">{{ note.body }}</div>
+          </div>
+          <div class="kv__row">
+            <div class="kv__k">Действия</div>
+            <div class="kv__v">
+              <a href="{{ url_for('notes.edit', note_id=note.id) }}">Редактировать</a>
+              &nbsp;
+              <form class="inline" method="post"
+                    action="{{ url_for('notes.delete', note_id=note.id) }}">
+                <button class="linklike" type="submit"
+                        onclick="return confirm('Удалить заметку?')">Удалить</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>Заметок пока нет.
+        <a href="{{ url_for('notes.new', date=selected_date or today) }}">
+          Создать первую →
+        </a>
+      </p>
+    {% endif %}
+  </div>
+{% endblock %}

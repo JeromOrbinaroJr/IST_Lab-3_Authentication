@@ -35,27 +35,24 @@
                value="{{ selected_date or today }}">
         <button type="submit">Показать</button>
         {% if selected_date %}
-          <a href="{{ url_for('schedule.index', group_id=group_id) }}">
-            Сбросить
-          </a>
+          <a href="{{ url_for('schedule.index', group_id=group_id) }}">Сбросить</a>
         {% endif %}
       </form>
 
-      {# Сообщение об ошибке даты #}
       {% if date_error %}
         <p>{{ date_error }}</p>
       {% endif %}
 
       {# Фильтр по дню недели #}
       <div style="margin-bottom:1rem">
-        <a href="{{ url_for('schedule.index', group_id=group_id) }}"
+        <a href="{{ url_for('schedule.index', date=today) }}"
            {% if not selected_day and not selected_date %}style="font-weight:bold"{% endif %}>
-          Все дни
+          Сегодня
         </a>
         {% for day_num, day_name in days.items() %}
           &nbsp;|&nbsp;
-          <a href="{{ url_for('schedule.index', group_id=group_id, day=day_num) }}"
-             {% if selected_day == day_num and not selected_date %}style="font-weight:bold"{% endif %}>
+          <a href="{{ url_for('schedule.index', date=week_dates[day_num]) }}"
+             {% if selected_day == day_num %}style="font-weight:bold"{% endif %}>
             {{ day_name }}
           </a>
         {% endfor %}
@@ -65,16 +62,24 @@
 
     {# Расписание #}
     {% if schedule %}
-      {% if selected_date and not date_error %}
-        <p>Расписание на {{ selected_date }}
-          ({{ days.get(selected_day, "") }}):
-        </p>
-      {% endif %}
       {% for day_num, day_name in days.items() %}
         {% if day_num in schedule %}
-          {% if not selected_date %}
-            <h2 class="h1" style="margin-top:1.5rem">{{ day_name }}</h2>
-          {% endif %}
+
+          {# Заголовок дня + кнопка заметки (только при конкретной дате) #}
+          <div style="display:flex; align-items:baseline; gap:1rem; margin-top:1.5rem">
+            {% if not selected_date %}
+              <h2 class="h1" style="margin:0">{{ day_name }}</h2>
+            {% else %}
+              <h2 class="h1" style="margin:0">
+                {{ day_name }}, {{ selected_date }}
+              </h2>
+              {% if user_role in ("student", "starosta") %}
+                <a href="{{ url_for('notes.new', date=selected_date) }}">+ заметка</a>
+              {% endif %}
+            {% endif %}
+          </div>
+
+          {# Пары #}
           <table>
             <thead>
               <tr>
@@ -95,8 +100,47 @@
               {% endfor %}
             </tbody>
           </table>
+
+          {# Заметки на эту дату #}
+          {% if selected_date and notes_by_date.get(selected_date) %}
+            <h3 style="margin-top:1rem">Заметки на {{ selected_date }}</h3>
+            {% for note in notes_by_date[selected_date] %}
+              <div class="kv" style="margin-bottom:.75rem">
+                {% if note.title %}
+                  <div class="kv__row">
+                    <div class="kv__k">Заголовок</div>
+                    <div class="kv__v">{{ note.title }}</div>
+                  </div>
+                {% endif %}
+                <div class="kv__row">
+                  <div class="kv__k">Текст</div>
+                  <div class="kv__v">{{ note.body }}</div>
+                </div>
+                <div class="kv__row">
+                  <div class="kv__k">Действия</div>
+                  <div class="kv__v">
+                    <a href="{{ url_for('notes.edit', note_id=note.id) }}">Редактировать</a>
+                    &nbsp;
+                    <form class="inline" method="post"
+                          action="{{ url_for('notes.delete', note_id=note.id) }}">
+                      <button class="linklike" type="submit"
+                              onclick="return confirm('Удалить заметку?')">Удалить</button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          {% elif selected_date and user_role in ("student", "starosta") and not date_error %}
+            <p style="margin-top:.5rem">
+              <a href="{{ url_for('notes.new', date=selected_date) }}">
+                Добавить заметку на этот день →
+              </a>
+            </p>
+          {% endif %}
+
         {% endif %}
       {% endfor %}
+
     {% elif not date_error %}
       {% if group_name %}
         <p>Расписание для группы {{ group_name }} не найдено.</p>
