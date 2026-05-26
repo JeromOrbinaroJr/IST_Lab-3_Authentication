@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% set title = "Заметка" %}
+
+{% block content %}
+  <div class="card">
+    <h1 class="h1">
+      {% if action == "edit" %}Редактировать заметку{% else %}
+        {% if is_group %}Новая заметка для группы{% else %}Новая личная заметка{% endif %}
+      {% endif %}
+    </h1>
+
+    <form method="post" action="
+      {% if action == 'edit' %}
+        {{ url_for('notes.update', note_id=note.id) }}
+      {% else %}
+        {{ url_for('notes.create') }}
+      {% endif %}
+    ">
+      <input type="hidden" name="is_group_note" value="{{ '1' if is_group else '0' }}">
+
+      <div class="kv">
+        <div class="kv__row">
+          <div class="kv__k"><label for="date">Дата</label></div>
+          <div class="kv__v">
+            <input type="date" id="date" name="date"
+                   value="{{ note.date if note else selected_date }}">
+          </div>
+        </div>
+
+        <div class="kv__row">
+          <div class="kv__k"><label for="title">Заголовок</label></div>
+          <div class="kv__v">
+            <input type="text" id="title" name="title"
+                   value="{{ note.title if note else '' }}"
+                   placeholder="Необязательно">
+          </div>
+        </div>
+
+        <div class="kv__row">
+          <div class="kv__k"><label for="body">Текст</label></div>
+          <div class="kv__v">
+            <textarea id="body" name="body" rows="5"
+                      placeholder="Текст заметки...">{{ note.body if note else '' }}</textarea>
+          </div>
+        </div>
+
+        {% if is_group %}
+          <div class="kv__row">
+            <div class="kv__k">Видимость</div>
+            <div class="kv__v">Все студенты вашей группы</div>
+          </div>
+        {% else %}
+          <div class="kv__row">
+            <div class="kv__k">Видимость</div>
+            <div class="kv__v">Только вы</div>
+          </div>
+        {% endif %}
+
+      </div>
+
+      <button type="submit">
+        {% if action == "edit" %}Сохранить{% else %}Создать{% endif %}
+      </button>
+      &nbsp;
+      <a href="{{ url_for('notes.index') }}">Отмена</a>
+    </form>
+  </div>
+{% endblock %}
