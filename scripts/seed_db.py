@@ -8,20 +8,22 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from app.rbac import init_role_tables, seed_role_tables
 
 
-def upsert_user(con, *, username, full_name, role, password, is_active=True):
+def upsert_user(con, *, username, full_name, role, password, is_active=True, group_id=None, course=None):
     password_hash = generate_password_hash(password)
     con.execute(
         """
-        INSERT INTO users (username, full_name, role, password_hash, is_active)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO users (username, full_name, role, password_hash, is_active, group_id, course)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(username) DO UPDATE SET
           full_name = excluded.full_name,
           role = excluded.role,
           password_hash = excluded.password_hash,
           is_active = excluded.is_active,
+          group_id = excluded.group_id,
+          course = excluded.course,
           updated_at = datetime('now')
         """,
-        (username, full_name, role, password_hash, 1 if is_active else 0),
+        (username, full_name, role, password_hash, 1 if is_active else 0, group_id, course),
     )
 
 
@@ -489,7 +491,7 @@ def main():
         seed_extra_users(con)
         seed_extra_programs(con, created_by_user_id=admin_id)
         seed_extra_achievements(con)
-        
+
         # ЛП1: справочники и тестовые данные
         upsert_status(con, name="активный", description="Студент обучается в штатном режиме")
         upsert_status(con, name="в академическом отпуске", description="Временное приостановление обучения")
