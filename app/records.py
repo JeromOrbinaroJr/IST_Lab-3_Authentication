@@ -11,6 +11,84 @@ from .security import (
 bp = Blueprint("records", __name__, url_prefix="/records")
 
 
+LOCAL_MODEL_ENTITIES = [
+    {
+        "name": "Преподаватели",
+        "note": "Основной защищаемый объект локального представления",
+        "fields": [
+            ("id_преподавателя", "INTEGER", "PK"),
+            ("фамилия", "VARCHAR(255)", ""),
+            ("имя", "VARCHAR(255)", ""),
+            ("отчество", "VARCHAR(255)", ""),
+            ("id_должности", "INTEGER", "FK"),
+            ("ученая_степень", "VARCHAR(255)", ""),
+            ("почта", "VARCHAR(255)", ""),
+            ("id_кафедры", "INTEGER", "FK"),
+        ],
+    },
+    {
+        "name": "Назначения должностей",
+        "note": "История назначений и ставок преподавателей",
+        "fields": [
+            ("id_назначения", "INTEGER", "PK"),
+            ("id_преподавателя", "INTEGER", "FK"),
+            ("id_должности", "INTEGER", "FK"),
+            ("дата_назначения", "DATE", ""),
+            ("ставка", "DECIMAL", ""),
+        ],
+    },
+    {
+        "name": "Должности",
+        "note": "Справочник должностей",
+        "fields": [
+            ("id_должности", "INTEGER", "PK"),
+            ("название", "VARCHAR(255)", ""),
+            ("категория", "VARCHAR(255)", ""),
+        ],
+    },
+    {
+        "name": "Квалификация преподавателей",
+        "note": "Связь преподавателей с дисциплинами",
+        "fields": [
+            ("id_квалификации", "INTEGER", "PK"),
+            ("id_преподавателя", "INTEGER", "FK"),
+            ("id_дисциплины", "INTEGER", "FK"),
+            ("уровень_подготовки", "VARCHAR(255)", ""),
+        ],
+    },
+    {
+        "name": "Дисциплины",
+        "note": "Учебные дисциплины кафедр",
+        "fields": [
+            ("id_дисциплины", "INTEGER", "PK"),
+            ("название", "VARCHAR(255)", ""),
+            ("тип_занятия", "VARCHAR(255)", ""),
+            ("часы", "SMALLINT", ""),
+            ("id_кафедры", "INTEGER", "FK"),
+        ],
+    },
+    {
+        "name": "Кафедры",
+        "note": "Справочник кафедр",
+        "fields": [
+            ("id_кафедры", "INTEGER", "PK"),
+            ("название", "VARCHAR(255)", ""),
+            ("аббревиатура", "VARCHAR(255)", ""),
+            ("кабинет", "SMALLINT", ""),
+        ],
+    },
+]
+
+LOCAL_MODEL_RELATIONS = [
+    ("Преподаватели", "1", "n", "Назначения должностей"),
+    ("Должности", "1", "n", "Назначения должностей"),
+    ("Преподаватели", "1", "n", "Квалификация преподавателей"),
+    ("Дисциплины", "1", "n", "Квалификация преподавателей"),
+    ("Кафедры", "1", "n", "Преподаватели"),
+    ("Кафедры", "1", "n", "Дисциплины"),
+]
+
+
 @bp.get("/")
 @login_required
 def list_records():
@@ -42,6 +120,16 @@ def list_records():
         ).fetchall()
 
     return render_template("records_list.html", records=rows)
+
+
+@bp.get("/local-model")
+@login_required
+def local_model():
+    return render_template(
+        "records_local_model.html",
+        entities=LOCAL_MODEL_ENTITIES,
+        relations=LOCAL_MODEL_RELATIONS,
+    )
 
 
 def _record_owner(record_id: int):

@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+{% set title = "Учебный план" %}
+
+{% block content %}
+  <section class="faculty-hero">
+    <div>
+      <p class="eyebrow">Локальное представление</p>
+      <h1 class="faculty-hero__title">Учебный план кафедр</h1>
+      <p class="faculty-hero__text">
+        Распределение дисциплин, кафедр и преподавателей по локальному представлению.
+      </p>
+    </div>
+    <div class="faculty-stats" aria-label="Сводные показатели">
+      <div><strong>{{ stats.teachers }}</strong><span>преподавателя</span></div>
+      <div><strong>{{ stats.departments }}</strong><span>кафедры</span></div>
+      <div><strong>{{ stats.disciplines }}</strong><span>дисциплин</span></div>
+      <div><strong>{{ stats.hours }}</strong><span>часов</span></div>
+    </div>
+  </section>
+
+  {% if can_manage %}
+    <form class="admin-panel" method="post" action="{{ url_for('faculty.admin_update') }}">
+      <div class="section-bar">
+        <h2>Админ-панель</h2>
+        <span>доступно для деканата и администратора</span>
+      </div>
+
+      <div class="admin-grid">
+        <section class="admin-box">
+          <h3>Кафедры</h3>
+          {% for department in departments %}
+            <div class="admin-row admin-row--department">
+              <input class="input" name="department_{{ department.id }}_name" value="{{ department.name }}" aria-label="Название кафедры" />
+              <input class="input" name="department_{{ department.id }}_abbr" value="{{ department.abbr }}" aria-label="Аббревиатура кафедры" />
+              <input class="input" type="number" name="department_{{ department.id }}_room" value="{{ department.room }}" aria-label="Кабинет кафедры" />
+            </div>
+          {% endfor %}
+        </section>
+
+        <section class="admin-box">
+          <h3>Дисциплины</h3>
+          {% for department in departments %}
+            {% for discipline in department.disciplines %}
+              <div class="admin-row admin-row--discipline">
+                <input class="input" name="discipline_{{ discipline.id }}_name" value="{{ discipline.name }}" aria-label="Название дисциплины" />
+                <input class="input" name="discipline_{{ discipline.id }}_type" value="{{ discipline.type }}" aria-label="Тип занятия" />
+                <input class="input" type="number" name="discipline_{{ discipline.id }}_hours" value="{{ discipline.hours }}" aria-label="Часы" />
+                <select class="input" name="discipline_{{ discipline.id }}_department_id" aria-label="Кафедра дисциплины">
+                  {% for option in departments %}
+                    <option value="{{ option.id }}" {% if option.id == discipline.department_id %}selected{% endif %}>{{ option.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            {% endfor %}
+          {% endfor %}
+        </section>
+
+        <section class="admin-box admin-box--wide">
+          <h3>Преподаватели и назначения</h3>
+          {% for teacher in teachers %}
+            <div class="admin-row admin-row--teacher">
+              <input class="input" name="teacher_{{ teacher.id }}_last_name" value="{{ teacher.last_name }}" aria-label="Фамилия" />
+              <input class="input" name="teacher_{{ teacher.id }}_first_name" value="{{ teacher.first_name }}" aria-label="Имя" />
+              <input class="input" name="teacher_{{ teacher.id }}_middle_name" value="{{ teacher.middle_name }}" aria-label="Отчество" />
+              <input class="input" name="teacher_{{ teacher.id }}_degree" value="{{ teacher.degree }}" aria-label="Учёная степень" />
+              <input class="input" name="teacher_{{ teacher.id }}_email" value="{{ teacher.email }}" aria-label="Почта" />
+              <select class="input" name="teacher_{{ teacher.id }}_department_id" aria-label="Кафедра преподавателя">
+                {% for department in departments %}
+                  <option value="{{ department.id }}" {% if department.id == teacher.department.id %}selected{% endif %}>{{ department.name }}</option>
+                {% endfor %}
+              </select>
+              <select class="input" name="teacher_{{ teacher.id }}_position_id" aria-label="Должность преподавателя">
+                {% for position in positions %}
+                  <option value="{{ position.id }}" {% if position.id == teacher.position.id %}selected{% endif %}>{{ position.name }}</option>
+                {% endfor %}
+              </select>
+              <select class="input" name="appointment_{{ teacher.id }}_position_id" aria-label="Должность назначения">
+                {% for position in positions %}
+                  <option value="{{ position.id }}" {% if position.id == teacher.appointment.position_id %}selected{% endif %}>{{ position.name }}</option>
+                {% endfor %}
+              </select>
+              <input class="input" type="date" name="appointment_{{ teacher.id }}_date" value="{{ teacher.appointment.date }}" aria-label="Дата назначения" />
+              <input class="input" type="number" min="0.1" step="0.05" name="appointment_{{ teacher.id }}_rate" value="{{ teacher.appointment.rate }}" aria-label="Ставка" />
+            </div>
+          {% endfor %}
+        </section>
+      </div>
+
+      <button class="btn" type="submit">Сохранить изменения</button>
+    </form>
+  {% endif %}
+
+  <section class="workspace-grid">
+    <div class="workspace-main">
+      <div class="section-bar">
+        <h2>Кафедры</h2>
+        <span>кабинеты и дисциплины</span>
+      </div>
+
+      <div class="department-board">
+        {% for department in departments %}
+          <article class="department-card">
+            <div class="department-card__head">
+              <div>
+                <strong>{{ department.abbr }}</strong>
+                <h3>{{ department.name }}</h3>
+              </div>
+              <span>каб. {{ department.room }}</span>
+            </div>
+            <div class="department-card__meta">
+              <span>{{ department.teachers|length }} преподавателя</span>
+              <span>{{ department.disciplines|length }} дисциплины</span>
+              <span>{{ department.hours }} ч.</span>
+            </div>
+            <div class="discipline-stack">
+              {% for discipline in department.disciplines %}
+                <div class="discipline-row">
+                  <div>
+                    <b>{{ discipline.name }}</b>
+                    <small>{{ discipline.type }}</small>
+                  </div>
+                  <span>{{ discipline.hours }} ч.</span>
+                </div>
+              {% endfor %}
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+
+      <div class="section-bar section-bar--spaced">
+        <h2>Преподаватели</h2>
+        <span>назначения и учебная нагрузка</span>
+      </div>
+
+      <div class="teacher-list">
+        {% for teacher in teachers %}
+          <article class="teacher-card">
+            <div class="teacher-card__avatar">{{ teacher.initials }}</div>
+            <div class="teacher-card__body">
+              <div class="teacher-card__top">
+                <div>
+                  <h3>{{ teacher.full_name }}</h3>
+                  <p>{{ teacher.degree }} · {{ teacher.position.name }} · {{ teacher.department.abbr }}</p>
+                </div>
+                <span class="rate-badge">{{ "%.2g"|format(teacher.appointment.rate) }} ставки</span>
+              </div>
+              <div class="teacher-card__facts">
+                <span>{{ teacher.email }}</span>
+                <span>назначение с {{ teacher.appointment.date }}</span>
+                <span>{{ teacher.load_hours }} ч. нагрузки</span>
+              </div>
+              <div class="skill-strip">
+                {% for qualification in teacher.qualifications %}
+                  <span title="{{ qualification.type }}, {{ qualification.hours }} ч.">
+                    {{ qualification.discipline }} · {{ qualification.level }}
+                  </span>
+                {% endfor %}
+              </div>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    </div>
+
+    <aside class="workspace-side">
+      <div class="side-panel">
+        <h2>Матрица готовности</h2>
+        <div class="readiness-list">
+          {% for teacher in teachers %}
+            <div class="readiness-row">
+              <div>
+                <strong>{{ teacher.last_name }}</strong>
+                <span>{{ teacher.department.abbr }}</span>
+              </div>
+              <meter min="0" max="120" value="{{ teacher.load_hours }}"></meter>
+              <small>{{ teacher.qualifications|length }} профиля</small>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="side-panel">
+        <h2>Назначения</h2>
+        <div class="timeline">
+          {% for teacher in teachers %}
+            <div class="timeline__item">
+              <time>{{ teacher.appointment.date }}</time>
+              <strong>{{ teacher.position.name }}</strong>
+              <span>{{ teacher.full_name }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </aside>
+  </section>
+{% endblock %}

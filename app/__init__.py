@@ -7,6 +7,7 @@ from .records import bp as records_bp
 from .rbac_routes import bp as rbac_bp
 from .lp1 import bp as lp1_bp
 from .lp1_legacy import bp as lp1_legacy_bp
+from .faculty import bp as faculty_bp
 
 
 def create_app():
@@ -30,5 +31,6 @@ def create_app():
     app.register_blueprint(rbac_bp)
     app.register_blueprint(lp1_bp)
     app.register_blueprint(lp1_legacy_bp)
+    app.register_blueprint(faculty_bp)
 
     return app
