@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% set title = "Программы" %}
+
+{% block content %}
+<div class="card">
+  <h1 class="h1">Стимулирующие программы</h1>
+
+  {% if user_role in ("teacher", "admin") %}
+    <a href="{{ url_for('programs.new') }}">+ Добавить программу</a>
+  {% endif %}
+
+  {# Фильтр по типу #}
+  <div style="margin:1rem 0">
+    <a href="{{ url_for('programs.index') }}"
+       {% if not type_filter %}style="font-weight:bold"{% endif %}>Все</a>
+    {% for t in prog_types %}
+      &nbsp;|&nbsp;
+      <a href="{{ url_for('programs.index', type_id=t.id) }}"
+         {% if type_filter == t.id %}style="font-weight:bold"{% endif %}>
+        {{ t.name }}
+      </a>
+    {% endfor %}
+  </div>
+
+  {% if programs %}
+    {% for p in programs %}
+      {% set status = eligibility.get(p.id) %}
+      <div class="kv" style="margin-bottom:1.5rem">
+        <div class="kv__row">
+          <div class="kv__k">Название</div>
+          <div class="kv__v">
+            <strong>{{ p.title }}</strong>
+            {% if p.url %}
+              &nbsp;<a href="{{ p.url }}" target="_blank">↗</a>
+            {% endif %}
+          </div>
+        </div>
+        <div class="kv__row">
+          <div class="kv__k">Тип</div>
+          <div class="kv__v">{{ p.type_name }}</div>
+        </div>
+        <div class="kv__row">
+          <div class="kv__k">Описание</div>
+          <div class="kv__v">{{ p.description }}</div>
+        </div>
+        <div class="kv__row">
+          <div class="kv__k">Требования</div>
+          <div class="kv__v">
+            {{ p.requirements or '—' }}
+            {% if p.min_course %}(курс: {{ p.min_course }}
+              {% if p.max_course %}–{{ p.max_course }}{% endif %})
+            {% endif %}
+            {% if p.min_rating %}, рейтинг ≥ {{ p.min_rating }} б.{% endif %}
+          </div>
+        </div>
+        {% if p.deadline %}
+          <div class="kv__row">
+            <div class="kv__k">Дедлайн</div>
+            <div class="kv__v">{{ p.deadline }}</div>
+          </div>
+        {% endif %}
+        {% if status %}
+          <div class="kv__row">
+            <div class="kv__k">Статус для вас</div>
+            <div class="kv__v">
+              {% if status == 'eligible' %}
+                ✅ Вы подходите — можно подавать заявку
+              {% else %}
+                ⏳ Пока рано — продолжайте учиться и набирайте баллы
+              {% endif %}
+            </div>
+          </div>
+        {% endif %}
+        {% if user_role in ("teacher", "admin") %}
+          <div class="kv__row">
+            <div class="kv__k">Действия</div>
+            <div class="kv__v">
+              <a href="{{ url_for('programs.edit', program_id=p.id) }}">Редактировать</a>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>Программ нет.</p>
+  {% endif %}
+</div>
+{% endblock %}

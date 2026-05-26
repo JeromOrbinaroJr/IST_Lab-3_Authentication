@@ -1,5 +1,11 @@
 PRAGMA foreign_keys = ON;
 
+-- ── Группы ────────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS groups (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  name       TEXT    NOT NULL UNIQUE  -- например «ИС-21», «ИС-22»
+);
+
 -- ── Пользователи ──────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS users (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -9,7 +15,9 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT    NOT NULL,
   is_active     INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0, 1)),
   created_at    TEXT    NOT NULL DEFAULT (datetime('now')),
-  updated_at    TEXT
+  updated_at    TEXT,
+  group_id INTEGER REFERENCES groups(id),
+  course INTEGER CHECK (course BETWEEN 1 AND 6)
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
@@ -175,3 +183,100 @@ CREATE TABLE IF NOT EXISTS academic_debts (
 );
 
 CREATE INDEX IF NOT EXISTS idx_debts_student_id ON academic_debts(student_id);
+
+
+-- ── Расписание ────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS schedule (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  group_id   INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+  day        INTEGER NOT NULL CHECK (day BETWEEN 1 AND 6), -- 1=Пн, 6=Сб
+  time_start TEXT    NOT NULL,  -- «09:00»
+  time_end   TEXT    NOT NULL,  -- «10:30»
+  subject    TEXT    NOT NULL,
+  teacher    TEXT    NOT NULL,
+  room       TEXT    NOT NULL DEFAULT ''
+);
+
+CREATE INDEX IF NOT EXISTS idx_schedule_group ON schedule(group_id, day);
+
+-- ── Заметки студентов ─────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS notes (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id       INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  date          TEXT    NOT NULL,
+  title         TEXT    NOT NULL DEFAULT '',
+  body          TEXT    NOT NULL DEFAULT '',
+  is_group_note INTEGER NOT NULL DEFAULT 0 CHECK (is_group_note IN (0, 1)),
+  group_id      INTEGER REFERENCES groups(id) ON DELETE CASCADE,
+  created_at    TEXT    NOT NULL DEFAULT (datetime('now')),
+  updated_at    TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_notes_user_date  ON notes(user_id, date);
+CREATE INDEX IF NOT EXISTS idx_notes_group_date ON notes(group_id, date);
+
+
+-- ── Категории достижений ──────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS achievement_categories (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  name        TEXT    NOT NULL UNIQUE,  -- «Олимпиада», «Конференция», «Спорт» и т.д.
+  base_score  INTEGER NOT NULL DEFAULT 1
+);
+
+-- ── Достижения студентов ──────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS achievements (
+  id               INTEGER PRIMARY KEY AUTOINCREMENT,
+  student_user_id  INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  category_id      INTEGER NOT NULL REFERENCES achievement_categories(id),
+  title            TEXT    NOT NULL,
+  description      TEXT    NOT NULL DEFAULT '',
+  file_name        TEXT,                          -- оригинальное имя файла
+  file_path        TEXT,                          -- путь в uploads/
+  status           TEXT    NOT NULL DEFAULT 'pending'
+                   CHECK (status IN ('pending', 'approved', 'rejected')),
+  score            INTEGER NOT NULL DEFAULT 0,
+  reviewer_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  reviewer_comment TEXT    NOT NULL DEFAULT '',
+  reviewed_at      TEXT,
+  created_at       TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_achievements_student ON achievements(student_user_id);
+CREATE INDEX IF NOT EXISTS idx_achievements_status  ON achievements(status);
+
+-- ── Мероприятия ───────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS events (
+  id                INTEGER PRIMARY KEY AUTOINCREMENT,
+  title             TEXT    NOT NULL,
+  description       TEXT    NOT NULL DEFAULT '',
+  event_date        TEXT    NOT NULL,             -- «2026-06-15»
+  location          TEXT    NOT NULL DEFAULT '',
+  is_active         INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0, 1)),
+  created_by_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+  created_at        TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_events_date ON events(event_date);
+
+-- ── Типы программ ─────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS program_types (
+  id   INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT    NOT NULL UNIQUE   -- «Университетская», «Федеральная», «Частный фонд»
+);
+
+-- ── Стимулирующие программы ───────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS programs (
+  id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+  type_id            INTEGER NOT NULL REFERENCES program_types(id),
+  title              TEXT    NOT NULL,
+  description        TEXT    NOT NULL DEFAULT '',
+  requirements       TEXT    NOT NULL DEFAULT '',  -- текстовое описание требований
+  min_course         INTEGER CHECK (min_course BETWEEN 1 AND 6),
+  max_course         INTEGER CHECK (max_course BETWEEN 1 AND 6),
+  min_rating         INTEGER NOT NULL DEFAULT 0,   -- минимальный балл рейтинга
+  deadline           TEXT,                         -- «2026-09-01»
+  url                TEXT    NOT NULL DEFAULT '',
+  is_active          INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0, 1)),
+  created_by_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+  created_at         TEXT    NOT NULL DEFAULT (datetime('now'))
+);

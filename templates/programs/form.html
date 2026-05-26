@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% set title = "Программа" %}
+
+{% block content %}
+<div class="card">
+  <h1 class="h1">
+    {% if action == 'edit' %}Редактировать программу{% else %}Новая программа{% endif %}
+  </h1>
+  <form method="post" action="
+    {% if action == 'edit' %}{{ url_for('programs.update', program_id=program.id) }}
+    {% else %}{{ url_for('programs.create') }}{% endif %}">
+    <div class="kv">
+      <div class="kv__row">
+        <div class="kv__k"><label for="type_id">Тип</label></div>
+        <div class="kv__v">
+          <select name="type_id" id="type_id">
+            {% for t in prog_types %}
+              <option value="{{ t.id }}"
+                {% if program and program.type_id == t.id %}selected{% endif %}>
+                {{ t.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="kv__row">
+        <div class="kv__k"><label for="title">Название</label></div>
+        <div class="kv__v">
+          <input type="text" id="title" name="title"
+                 value="{{ program.title if program else '' }}">
+        </div>
+      </div>
+      <div class="kv__row">
+        <div class="kv__k"><label for="description">Описание</label></div>
+        <div class="kv__v">
+          <textarea id="description" name="description" rows="3">{{ program.description if program else '' }}</textarea>
+        </div>
+      </div>
+      <div class="kv__row">
+        <div class="kv__k"><label for="requirements">Требования</label></div>
+        <div class="kv__v">
+          <textarea id="requirements" name="requirements" rows="3">{{ program.requirements if program else '' }}</textarea>
+        </div>
+      </div>
+      <div class="kv__row">
+        <div class="kv__k">Курс (от–до)</div>
+        <div class="kv__v">
+          <input type="number" name="min_course" min="1" max="6" placeholder="от"
+                 value="{{ program.min_course if program else '' }}" style="width:4rem">
+          &nbsp;–&nbsp;
+          <input type="number" name="max_course" min="1" max="6" placeholder="до"
+                 value="{{ program.max_course if program else '' }}" style="width:4rem">
+        </div>
+      </div>
+      <div class="kv__row">
+        <div class="kv__k"><label for="min_rating">Мин. рейтинг (баллы)</label></div>
+        <div class="kv__v">
+          <input type="number" id="min_rating" name="min_rating" min="0"
+                 value="{{ program.min_rating if program else 0 }}">
+        </div>
+      </div>
+      <div class="kv__row">
+        <div class="kv__k"><label for="deadline">Дедлайн</label></div>
+        <div class="kv__v">
+          <input type="date" id="deadline" name="deadline"
+                 value="{{ program.deadline if program else '' }}">
+        </div>
+      </div>
+      <div class="kv__row">
+        <div class="kv__k"><label for="url">Ссылка</label></div>
+        <div class="kv__v">
+          <input type="url" id="url" name="url"
+                 value="{{ program.url if program else '' }}">
+        </div>
+      </div>
+      {% if action == 'edit' %}
+        <div class="kv__row">
+          <div class="kv__k">Активна</div>
+          <div class="kv__v">
+            <input type="checkbox" name="is_active" value="1"
+                   {% if program.is_active %}checked{% endif %}>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+    <button type="submit">
+      {% if action == 'edit' %}Сохранить{% else %}Добавить{% endif %}
+    </button>
+    &nbsp;<a href="{{ url_for('programs.index') }}">Отмена</a>
+  </form>
+</div>
+{% endblock %}

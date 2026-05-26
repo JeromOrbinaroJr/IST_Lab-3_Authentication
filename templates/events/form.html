@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% set title = "Мероприятие" %}
+
+{% block content %}
+<div class="card">
+  <h1 class="h1">
+    {% if action == 'edit' %}Редактировать мероприятие{% else %}Новое мероприятие{% endif %}
+  </h1>
+  <form method="post" action="
+    {% if action == 'edit' %}{{ url_for('events.update', event_id=event.id) }}
+    {% else %}{{ url_for('events.create') }}{% endif %}">
+    <div class="kv">
+      <div class="kv__row">
+        <div class="kv__k"><label for="title">Название</label></div>
+        <div class="kv__v">
+          <input type="text" id="title" name="title"
+                 value="{{ event.title if event else '' }}">
+        </div>
+      </div>
+      <div class="kv__row">
+        <div class="kv__k"><label for="description">Описание</label></div>
+        <div class="kv__v">
+          <textarea id="description" name="description" rows="3">{{ event.description if event else '' }}</textarea>
+        </div>
+      </div>
+      <div class="kv__row">
+        <div class="kv__k"><label for="event_date">Дата</label></div>
+        <div class="kv__v">
+          <input type="date" id="event_date" name="event_date"
+                 value="{{ event.event_date if event else '' }}">
+        </div>
+      </div>
+      <div class="kv__row">
+        <div class="kv__k"><label for="location">Место</label></div>
+        <div class="kv__v">
+          <input type="text" id="location" name="location"
+                 value="{{ event.location if event else '' }}">
+        </div>
+      </div>
+      {% if action == 'edit' %}
+        <div class="kv__row">
+          <div class="kv__k">Активно</div>
+          <div class="kv__v">
+            <input type="checkbox" name="is_active" value="1"
+                   {% if event.is_active %}checked{% endif %}>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+    <button type="submit">
+      {% if action == 'edit' %}Сохранить{% else %}Добавить{% endif %}
+    </button>
+    &nbsp;<a href="{{ url_for('events.index') }}">Отмена</a>
+  </form>
+</div>
+{% endblock %}
